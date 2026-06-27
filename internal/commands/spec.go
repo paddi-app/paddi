@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -19,6 +20,7 @@ func specCommand() *cli.Command {
 		Usage: "Work with specs",
 		Commands: []*cli.Command{
 			{Name: "list", Usage: "List specs in the current project", Action: runSpecList},
+			{Name: "info", Usage: "Print a spec's metadata (without its markdown content)", ArgsUsage: "<spec-id>", Action: runSpecInfo},
 			{Name: "view", Usage: "Print a spec's markdown content", ArgsUsage: "<spec-id>", Action: runSpecView},
 			{
 				Name:      "download",
@@ -74,6 +76,42 @@ func runSpecList(ctx context.Context, _ *cli.Command) error {
 		rows = append(rows, []string{s.ID, truncate(s.Title, 50), requestType, locked, s.CreatedAt.Local().Format("2006-01-02")})
 	}
 	return output.Table(os.Stdout, []string{"ID", "TITLE", "REQUEST TYPE", "LOCKED", "CREATED"}, rows)
+}
+
+func runSpecInfo(ctx context.Context, cmd *cli.Command) error {
+	id, err := singleArg(cmd, "paddi spec info <spec-id>")
+	if err != nil {
+		return err
+	}
+	cfg, err := loadConfig()
+	if err != nil {
+		return err
+	}
+	client, err := newClient(cfg)
+	if err != nil {
+		return err
+	}
+	spec, _, err := client.GetSpec(ctx, id)
+	if err != nil {
+		return err
+	}
+	if opts.JSON {
+		spec.Content = ""
+		b, err := json.Marshal(spec)
+		if err != nil {
+			return err
+		}
+		return output.JSON(os.Stdout, b)
+	}
+	locked := "no"
+	if spec.Locked {
+		locked = "yes"
+	}
+	fmt.Printf("%s (%s)\n", spec.Title, spec.ID)
+	fmt.Printf("Request ID: %s\n", spec.RequestID)
+	fmt.Printf("Locked: %s\n", locked)
+	fmt.Printf("Created: %s\n", spec.CreatedAt.Local().Format("2006-01-02 15:04"))
+	return nil
 }
 
 func runSpecView(ctx context.Context, cmd *cli.Command) error {
