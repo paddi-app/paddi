@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/paddi-app/paddi/internal/config"
 	"github.com/paddi-app/paddi/internal/credentials"
 )
 
@@ -39,12 +38,12 @@ func (e *Error) Error() string {
 }
 
 // NewClient builds an authenticated API client with automatic token refresh.
-func NewClient(cfg *config.Config) (*Client, error) {
+func NewClient(apiBase string) (*Client, error) {
 	token, err := credentials.AccessToken()
 	if err != nil {
 		return nil, err
 	}
-	c := &Client{BaseURL: cfg.APIBase, Token: token}
+	c := &Client{BaseURL: apiBase, Token: token}
 	if !credentials.FromEnv() {
 		c.Refresh = func(ctx context.Context) (string, error) {
 			rt, err := credentials.RefreshToken()

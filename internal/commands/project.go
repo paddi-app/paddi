@@ -27,15 +27,11 @@ func projectCommand() *cli.Command {
 }
 
 func runProjectList(ctx context.Context, _ *cli.Command) error {
-	cfg, err := cmdutil.LoadConfig(&opts)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(cfg)
-	if err != nil {
-		return err
-	}
-	projects, raw, err := client.ListProjects(ctx, cfg.Context.WorkspaceID)
+	projects, raw, err := client.ListProjects(ctx, opts.WorkspaceID)
 	if err != nil {
 		return err
 	}
@@ -60,13 +56,13 @@ func runProjectSwitch(ctx context.Context, cmd *cli.Command) error {
 	if err != nil || proj == nil {
 		return err
 	}
-	if err := config.Set("context.project_id", proj.ID); err != nil {
+	if err := config.Set(config.KeyProjectID, proj.ID); err != nil {
 		return err
 	}
 	// Adopt the project's workspace so the two stay in sync and subsequent
 	// listings are scoped to it.
 	if proj.WorkspaceID != "" {
-		if err := config.Set("context.workspace_id", proj.WorkspaceID); err != nil {
+		if err := config.Set(config.KeyWorkspaceID, proj.WorkspaceID); err != nil {
 			return err
 		}
 	}
@@ -89,11 +85,7 @@ func chooseProject(ctx context.Context, cmd *cli.Command) (*api.Project, error) 
 		return nil, errors.New("usage: paddi project switch [project-id]")
 	}
 
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return nil, err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +106,7 @@ func chooseProject(ctx context.Context, cmd *cli.Command) (*api.Project, error) 
 	}
 
 	// No id: present a picker scoped to the current workspace.
-	workspaceID, err := cmdutil.RequireWorkspace(cfg)
+	workspaceID, err := cmdutil.RequireWorkspace(opts.WorkspaceID)
 	if err != nil {
 		return nil, err
 	}

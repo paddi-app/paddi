@@ -12,7 +12,7 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -s -w -X github.com/paddi-app/paddi/internal/config.defaultAPIBase=https://api.paddi.app
+      - -s -w -X github.com/paddi-app/paddi/internal/config.DefaultAPIBase=https://api.paddi.app
     goos:
       - linux
       - darwin

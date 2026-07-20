@@ -10,7 +10,6 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
-	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/config"
 	"github.com/paddi-app/paddi/internal/output"
 	"github.com/paddi-app/paddi/internal/prompt"
@@ -28,11 +27,7 @@ func workspaceCommand() *cli.Command {
 }
 
 func runWorkspaceList(ctx context.Context, _ *cli.Command) error {
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
@@ -65,7 +60,7 @@ func runWorkspaceSwitch(ctx context.Context, cmd *cli.Command) error {
 	if err != nil || id == "" {
 		return err
 	}
-	if err := config.Set("context.workspace_id", id); err != nil {
+	if err := config.Set(config.KeyWorkspaceID, id); err != nil {
 		return err
 	}
 	if !opts.Quiet {
@@ -90,11 +85,7 @@ func chooseWorkspace(ctx context.Context, cmd *cli.Command) (id, name string, er
 		return "", "", errors.New("usage: paddi workspace switch [workspace-id]")
 	}
 
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return "", "", err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return "", "", err
 	}

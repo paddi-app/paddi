@@ -38,15 +38,11 @@ func specCommand() *cli.Command {
 }
 
 func runSpecList(ctx context.Context, _ *cli.Command) error {
-	cfg, err := cmdutil.LoadConfig(&opts)
+	projectID, err := cmdutil.RequireProject(opts.Project)
 	if err != nil {
 		return err
 	}
-	projectID, err := cmdutil.RequireProject(cfg)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
@@ -84,11 +80,7 @@ func runSpecInfo(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
@@ -120,11 +112,7 @@ func runSpecView(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
@@ -148,11 +136,7 @@ func runSpecDownload(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
@@ -180,11 +164,7 @@ func runSpecLock(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}

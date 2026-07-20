@@ -31,11 +31,7 @@ func authCommand() *cli.Command {
 }
 
 func runAuthLogin(ctx context.Context, _ *cli.Command) error {
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client := &api.Client{BaseURL: cfg.APIBase}
+	client := &api.Client{BaseURL: opts.APIBase}
 
 	code, err := client.DeviceCode(ctx)
 	if err != nil {
@@ -121,13 +117,9 @@ func waitForEnter(ctx context.Context) error {
 }
 
 func runAuthLogout(ctx context.Context, _ *cli.Command) error {
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
 	if rt, err := credentials.RefreshToken(); err == nil {
 		token, _ := credentials.AccessToken()
-		client := &api.Client{BaseURL: cfg.APIBase, Token: token}
+		client := &api.Client{BaseURL: opts.APIBase, Token: token}
 		if err := client.Logout(ctx, rt); err != nil {
 			fmt.Fprintf(os.Stderr, "warning: failed to revoke session: %v\n", err)
 		}
@@ -145,11 +137,7 @@ func runAuthLogout(ctx context.Context, _ *cli.Command) error {
 }
 
 func runAuthStatus(ctx context.Context, _ *cli.Command) error {
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
@@ -160,7 +148,7 @@ func runAuthStatus(ctx context.Context, _ *cli.Command) error {
 	if opts.JSON {
 		return output.JSON(os.Stdout, raw)
 	}
-	workspace, project := cmdutil.ResolveContextNames(ctx, client, cfg.Context.WorkspaceID, cfg.Context.ProjectID)
+	workspace, project := cmdutil.ResolveContextNames(ctx, client, opts.WorkspaceID, opts.Project)
 	fmt.Printf("Logged in as %s (%s)\n", user.Name, user.Email)
 	fmt.Printf("Workspace: %s\n", output.OrNone(workspace))
 	fmt.Printf("Project:   %s\n", output.OrNone(project))

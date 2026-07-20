@@ -46,15 +46,11 @@ func requestCommand() *cli.Command {
 }
 
 func runRequestList(ctx context.Context, _ *cli.Command) error {
-	cfg, err := cmdutil.LoadConfig(&opts)
+	projectID, err := cmdutil.RequireProject(opts.Project)
 	if err != nil {
 		return err
 	}
-	projectID, err := cmdutil.RequireProject(cfg)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
@@ -84,11 +80,7 @@ func runRequestView(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
@@ -108,11 +100,7 @@ func runRequestRegenerate(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
@@ -138,11 +126,7 @@ func runRequestDraft(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := cmdutil.LoadConfig(&opts)
-	if err != nil {
-		return err
-	}
-	client, err := api.NewClient(cfg)
+	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}

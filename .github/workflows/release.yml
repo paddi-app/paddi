@@ -64,7 +64,7 @@ jobs:
             --entry-point paddi \
             --version "${GITHUB_REF_NAME#v}" \
             --set-version-var main.version \
-            --ldflags "-X github.com/paddi-app/paddi/internal/config.defaultAPIBase=https://api.paddi.app" \
+            --ldflags "-X github.com/paddi-app/paddi/internal/config.DefaultAPIBase=https://api.paddi.app" \
             --description "Paddi CLI" \
             --license MIT \
             --url https://github.com/paddi-app/paddi \

@@ -13,43 +13,28 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
-	"github.com/paddi-app/paddi/internal/config"
 )
 
-// Options holds the global flags shared by every command.
+// Options holds the global flags shared by every command. It is populated
+// directly by cli.Command flag parsing (flag > env > config file > default).
 type Options struct {
-	JSON    bool
-	Quiet   bool
-	Project string
-	APIBase string
-}
-
-// LoadConfig returns the effective config with flag overrides applied
-// (flag > env > file > default).
-func LoadConfig(o *Options) (*config.Config, error) {
-	cfg, err := config.Load()
-	if err != nil {
-		return nil, err
-	}
-	if o.APIBase != "" {
-		cfg.APIBase = o.APIBase
-	}
-	if o.Project != "" {
-		cfg.Context.ProjectID = o.Project
-	}
-	return cfg, nil
+	JSON        bool
+	Quiet       bool
+	Project     string
+	APIBase     string
+	WorkspaceID string
 }
 
 // RequireProject returns the current project id, or an error telling the
 // user how to set one.
-func RequireProject(cfg *config.Config) (string, error) {
-	return requireContext(cfg.Context.ProjectID, "project", "or pass --project")
+func RequireProject(id string) (string, error) {
+	return requireContext(id, "project", "or pass --project")
 }
 
 // RequireWorkspace returns the current workspace id, or an error telling the
 // user how to set one.
-func RequireWorkspace(cfg *config.Config) (string, error) {
-	return requireContext(cfg.Context.WorkspaceID, "workspace", "")
+func RequireWorkspace(id string) (string, error) {
+	return requireContext(id, "workspace", "")
 }
 
 // requireContext returns id, or an error telling the user to run
