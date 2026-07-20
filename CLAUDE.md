@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**Tech Stack**: `urfave/cli/v3` (CLI) · `knadh/koanf/v2` (config: flag→env→file→default) · `zalando/go-keyring` (token, `PADDI_TOKEN` override) · stdlib `net/http` · `pkg/browser` (device-flow URL) · `go-runewidth`/`encoding/json` (output).
+**Tech Stack**: `urfave/cli/v3` (CLI + config precedence flag→env→file→default via its `Sources` chain, with `urfave/cli-altsrc/v3` as the TOML file source) · `pelletier/go-toml/v2` (config file writes) · `zalando/go-keyring` (token, `PADDI_TOKEN` override) · stdlib `net/http` · `pkg/browser` (device-flow URL) · `go-runewidth`/`encoding/json` (output).
 
 ## Working Principles
 
@@ -34,9 +34,10 @@ These four rules override everything else below. Align before acting.
 ## Architecture
 
 - **`main.go`** — thin entrypoint: build root command, `Run(ctx, os.Args)`, map exit code.
-- **`internal/commands`** — CLI layer (one file per command group): parse flags/args, build the API client, call it, render via `output`. No HTTP or business logic.
-- **`internal/api`** — the only place that talks HTTP to the backend: typed methods returning typed structs + typed errors, built from `baseURL` + `token` + `*http.Client`.
-- **`internal/config`** — koanf load/save, XDG paths, precedence; local-machine state only.
+- **`internal/commands`** — CLI layer (one file per command group): parse flags/args, build the API client, call it, render via `output`. No HTTP or business logic; shared plumbing lives in `cmdutil`.
+- **`internal/cmdutil`** — command-runtime glue shared by every command group: `Options` (parsed global flags), `RequireProject`/`RequireWorkspace` context checks, `SingleArg`, `ResolveContextNames`, `ReadFileOrStdin`. No `cli.Command` definitions of its own.
+- **`internal/api`** — the only place that talks HTTP to the backend: `NewClient` + typed methods returning typed structs + typed errors, built from `baseURL` + `token` + `*http.Client`.
+- **`internal/config`** — XDG config path resolution, config-file read/write (`Set`/`Clear`), and the centralized env var / TOML key constants (`EnvAPIBase`, `KeyProjectID`, etc.) that `root.go`'s flag `Sources` chain and `cmdutil` consume; local-machine state only. Flag precedence itself is resolved by `urfave/cli/v3`, not by this package.
 - **`internal/credentials`** — keyring get/set/delete + `PADDI_TOKEN` override; local-machine state only.
 - **`internal/output`** — pure rendering (table / json / markdown); no I/O beyond the writer it is handed.
 
