@@ -90,3 +90,17 @@ These four rules override everything else below. Align before acting.
 CLI changes to commands, flags, env vars, config keys, output format, or exit codes must be mirrored in `paddi-website`'s `src/content/docs/cli.mdx` before merging (can't be the same commit — separate repos). Its sections map 1:1 to `internal/commands/*.go` command groups, plus global flags, config/env vars, auth flow, and exit codes — use that to find the matching section fast. Internal refactors and bug fixes with no user-visible effect don't need it.
 
 The website repo is usually a sibling checkout (e.g. `../paddi-website`); if it isn't found locally, say so instead of guessing a path or skipping the update silently.
+
+## Distribution Channels
+
+Published by `.goreleaser.yaml` + `.github/workflows/release.yml` on every `v*` tag:
+
+- **Homebrew** — `paddi-app/tap` (skipped if `TAP_DEPLOY_KEY` unset)
+- **Scoop** — `paddi-app/scoop-bucket` (skipped if `GH_PAT` unset)
+- **Winget** — `Paddi.Paddi`, PR into `microsoft/winget-pkgs` (skipped if `GH_PAT` unset)
+- **npm** — `@paddi-app/paddi`, per-platform packages + root w/ `optionalDependencies` (skipped if `NPM_TOKEN` unset)
+- **PyPI** — `paddi-cli`, built via `go-to-wheel` from the same Go build (trusted publishing, always runs)
+- **go install** — `github.com/paddi-app/paddi@latest`
+- **GitHub Releases** — raw archives + `deb`/`rpm`/`apk` packages (nfpm)
+
+Keep `README.md`'s Installation section in sync if a channel is added, removed, or its skip condition changes.
