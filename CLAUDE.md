@@ -41,6 +41,16 @@ These four rules override everything else below. Align before acting.
 - **`internal/credentials`** — keyring get/set/delete + `PADDI_TOKEN` override; local-machine state only.
 - **`internal/output`** — pure rendering (table / json / markdown); no I/O beyond the writer it is handed.
 
+## Testing
+
+- One `_test.go` per source file, same package (white-box: `client_test.go` ↔ `client.go`).
+- Reuse `internal/commands/helpers_test.go`'s shared plumbing instead of reinventing it: `parsedCmd` (build/parse a `*cli.Command` without touching the network), `withAPIBase` (fake backend + bypasses keyring via `PADDI_TOKEN`), `withOpts` (snapshot/mutate/restore the package-level `opts`), `withConfigFile` (redirect `config.Path()` to a temp file), `captureStdout`/`captureStderr`, `writeTemp`/`withStdin`.
+- Never touch the real OS keyring or user config file: `keyring.MockInit()` for credential/token tests, `withConfigFile` (or `t.Setenv(config.EnvConfigPath, ...)`) for config tests.
+- Fake the backend with `httptest.NewServer`; assert both the response handling and the request the client actually sent (method/path/query/body).
+- Cover the success path, the error path, and edge cases (empty/nil/zero-value) — not just the happy path.
+- Table-driven (`[]struct{...}` + `t.Run`) for multiple similar cases; name tests `TestXxx_ScenarioDescription`.
+- Skip tests for trivial struct-literal command builders (`xCommand()`) — they're exercised indirectly via their flags/subcommands elsewhere.
+
 ## CLI Reference
 
 ### Commands
