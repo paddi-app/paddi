@@ -11,8 +11,7 @@
 [![Homebrew Tap](https://img.shields.io/badge/homebrew-paddi--app%2Ftap-orange?logo=homebrew)](https://github.com/paddi-app/tap)
 
 ```bash
-brew tap paddi-app/tap
-brew install paddi
+brew install paddi-app/tap/paddi
 ```
 
 ### pip / uv
