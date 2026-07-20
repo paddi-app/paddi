@@ -113,7 +113,11 @@ func chooseProject(ctx context.Context, cmd *cli.Command) (*api.Project, error) 
 	}
 
 	// No id: present a picker scoped to the current workspace.
-	projects, _, err := client.ListProjects(ctx, cfg.Context.WorkspaceID)
+	workspaceID, err := requireWorkspace(cfg)
+	if err != nil {
+		return nil, err
+	}
+	projects, _, err := client.ListProjects(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}

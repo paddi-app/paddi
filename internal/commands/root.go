@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/urfave/cli/v3"
@@ -95,10 +96,25 @@ func newClient(cfg *config.Config) (*api.Client, error) {
 }
 
 func requireProject(cfg *config.Config) (string, error) {
-	if cfg.Context.ProjectID == "" {
-		return "", errors.New("no project selected: run `paddi project switch <id>` or pass --project")
+	return requireContext(cfg.Context.ProjectID, "project", "or pass --project")
+}
+
+func requireWorkspace(cfg *config.Config) (string, error) {
+	return requireContext(cfg.Context.WorkspaceID, "workspace", "")
+}
+
+// requireContext returns id, or an error telling the user to run
+// `paddi <kind> switch` first. altHint, if set, is offered as a shortcut
+// alternative to switching (e.g. "or pass --project").
+func requireContext(id, kind, altHint string) (string, error) {
+	if id != "" {
+		return id, nil
 	}
-	return cfg.Context.ProjectID, nil
+	msg := fmt.Sprintf("no %s selected: run `paddi %s switch` first", kind, kind)
+	if altHint != "" {
+		msg = fmt.Sprintf("no %s selected: run `paddi %s switch`, or %s", kind, kind, altHint)
+	}
+	return "", errors.New(msg)
 }
 
 func singleArg(cmd *cli.Command, usage string) (string, error) {
