@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
+	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/config"
 	"github.com/paddi-app/paddi/internal/output"
 	"github.com/paddi-app/paddi/internal/prompt"
@@ -27,11 +28,11 @@ func workspaceCommand() *cli.Command {
 }
 
 func runWorkspaceList(ctx context.Context, _ *cli.Command) error {
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -50,7 +51,11 @@ func runWorkspaceList(ctx context.Context, _ *cli.Command) error {
 	}
 	rows := make([][]string, 0, len(workspaces))
 	for _, w := range workspaces {
-		rows = append(rows, []string{w.ID, w.Name, roleName(w.Member), strconv.Itoa(len(w.Projects))})
+		role := ""
+		if w.Member != nil {
+			role = w.Member.Role.String()
+		}
+		rows = append(rows, []string{w.ID, w.Name, role, strconv.Itoa(len(w.Projects))})
 	}
 	return output.Table(os.Stdout, []string{"ID", "NAME", "ROLE", "PROJECTS"}, rows)
 }
@@ -85,11 +90,11 @@ func chooseWorkspace(ctx context.Context, cmd *cli.Command) (id, name string, er
 		return "", "", errors.New("usage: paddi workspace switch [workspace-id]")
 	}
 
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return "", "", err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return "", "", err
 	}
@@ -113,20 +118,4 @@ func chooseWorkspace(ctx context.Context, cmd *cli.Command) (id, name string, er
 		return "", "", err
 	}
 	return choice.ID, choice.Label, nil
-}
-
-func roleName(m *api.WorkspaceMember) string {
-	if m == nil {
-		return ""
-	}
-	switch m.Role {
-	case 1:
-		return "Member"
-	case 2:
-		return "Admin"
-	case 3:
-		return "Owner"
-	default:
-		return strconv.Itoa(m.Role)
-	}
 }

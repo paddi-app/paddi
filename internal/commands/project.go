@@ -9,6 +9,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
+	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/config"
 	"github.com/paddi-app/paddi/internal/output"
 	"github.com/paddi-app/paddi/internal/prompt"
@@ -26,11 +27,11 @@ func projectCommand() *cli.Command {
 }
 
 func runProjectList(ctx context.Context, _ *cli.Command) error {
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -49,7 +50,7 @@ func runProjectList(ctx context.Context, _ *cli.Command) error {
 	}
 	rows := make([][]string, 0, len(projects))
 	for _, p := range projects {
-		rows = append(rows, []string{p.ID, p.Name, truncate(p.Description, 60)})
+		rows = append(rows, []string{p.ID, p.Name, output.Truncate(p.Description, 60)})
 	}
 	return output.Table(os.Stdout, []string{"ID", "NAME", "DESCRIPTION"}, rows)
 }
@@ -88,11 +89,11 @@ func chooseProject(ctx context.Context, cmd *cli.Command) (*api.Project, error) 
 		return nil, errors.New("usage: paddi project switch [project-id]")
 	}
 
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return nil, err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +114,7 @@ func chooseProject(ctx context.Context, cmd *cli.Command) (*api.Project, error) 
 	}
 
 	// No id: present a picker scoped to the current workspace.
-	workspaceID, err := requireWorkspace(cfg)
+	workspaceID, err := cmdutil.RequireWorkspace(cfg)
 	if err != nil {
 		return nil, err
 	}

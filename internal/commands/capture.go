@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
 	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
+	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/output"
 )
 
@@ -40,15 +40,15 @@ func runCaptureCreate(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	projectID, err := requireProject(cfg)
+	projectID, err := cmdutil.RequireProject(cfg)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -76,14 +76,14 @@ func captureDescription(cmd *cli.Command) (string, error) {
 	switch {
 	case cmd.String("message") != "":
 		return cmd.String("message"), nil
-	case cmd.String("file") != "" && cmd.String("file") != "-":
-		data, err := os.ReadFile(cmd.String("file"))
+	case cmd.String("file") != "":
+		data, err := cmdutil.ReadFileOrStdin(cmd.String("file"))
 		if err != nil {
 			return "", err
 		}
 		return validDescription(string(data))
-	case cmd.String("file") == "-" || cmd.Args().First() == "-":
-		data, err := io.ReadAll(os.Stdin)
+	case cmd.Args().First() == "-":
+		data, err := cmdutil.ReadFileOrStdin("-")
 		if err != nil {
 			return "", err
 		}

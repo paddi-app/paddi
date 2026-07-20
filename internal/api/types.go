@@ -1,6 +1,9 @@
 package api
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 type User struct {
 	ID    string `json:"id"`
@@ -17,7 +20,28 @@ type Workspace struct {
 }
 
 type WorkspaceMember struct {
-	Role int `json:"role"`
+	Role WorkspaceMemberRole `json:"role"`
+}
+
+type WorkspaceMemberRole int
+
+const (
+	WorkspaceMemberRoleMember WorkspaceMemberRole = 1
+	WorkspaceMemberRoleAdmin  WorkspaceMemberRole = 2
+	WorkspaceMemberRoleOwner  WorkspaceMemberRole = 3
+)
+
+func (r WorkspaceMemberRole) String() string {
+	switch r {
+	case WorkspaceMemberRoleMember:
+		return "Member"
+	case WorkspaceMemberRoleAdmin:
+		return "Admin"
+	case WorkspaceMemberRoleOwner:
+		return "Owner"
+	default:
+		return strconv.Itoa(int(r))
+	}
 }
 
 type Project struct {

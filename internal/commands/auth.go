@@ -11,6 +11,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
+	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/config"
 	"github.com/paddi-app/paddi/internal/credentials"
 	"github.com/paddi-app/paddi/internal/output"
@@ -30,7 +31,7 @@ func authCommand() *cli.Command {
 }
 
 func runAuthLogin(ctx context.Context, _ *cli.Command) error {
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
@@ -120,7 +121,7 @@ func waitForEnter(ctx context.Context) error {
 }
 
 func runAuthLogout(ctx context.Context, _ *cli.Command) error {
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
@@ -144,11 +145,11 @@ func runAuthLogout(ctx context.Context, _ *cli.Command) error {
 }
 
 func runAuthStatus(ctx context.Context, _ *cli.Command) error {
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -159,35 +160,9 @@ func runAuthStatus(ctx context.Context, _ *cli.Command) error {
 	if opts.JSON {
 		return output.JSON(os.Stdout, raw)
 	}
-	workspace, project := resolveContextNames(ctx, client, cfg.Context.WorkspaceID, cfg.Context.ProjectID)
+	workspace, project := cmdutil.ResolveContextNames(ctx, client, cfg.Context.WorkspaceID, cfg.Context.ProjectID)
 	fmt.Printf("Logged in as %s (%s)\n", user.Name, user.Email)
-	fmt.Printf("Workspace: %s\n", orNone(workspace))
-	fmt.Printf("Project:   %s\n", orNone(project))
+	fmt.Printf("Workspace: %s\n", output.OrNone(workspace))
+	fmt.Printf("Project:   %s\n", output.OrNone(project))
 	return nil
-}
-
-// resolveContextNames maps the current workspace/project IDs to their display
-// names via a single workspace listing (whose entries carry nested projects).
-// It is best-effort: a failed lookup falls back to the raw ID so name
-// resolution never breaks `auth status`.
-func resolveContextNames(ctx context.Context, client *api.Client, workspaceID, projectID string) (workspace, project string) {
-	workspace, project = workspaceID, projectID
-	if workspaceID == "" && projectID == "" {
-		return workspace, project
-	}
-	workspaces, _, err := client.ListWorkspaces(ctx)
-	if err != nil {
-		return workspace, project
-	}
-	for _, w := range workspaces {
-		if w.ID == workspaceID {
-			workspace = w.Name
-		}
-		for i := range w.Projects {
-			if w.Projects[i].ID == projectID {
-				project = w.Projects[i].Name
-			}
-		}
-	}
-	return workspace, project
 }

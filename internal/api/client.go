@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/paddi-app/paddi/internal/config"
+	"github.com/paddi-app/paddi/internal/credentials"
 )
 
 // Client talks HTTP to the Paddi backend.
@@ -33,6 +36,32 @@ func (e *Error) Error() string {
 		return fmt.Sprintf("%s (HTTP %d)", e.Code, e.Status)
 	}
 	return fmt.Sprintf("HTTP %d", e.Status)
+}
+
+// NewClient builds an authenticated API client with automatic token refresh.
+func NewClient(cfg *config.Config) (*Client, error) {
+	token, err := credentials.AccessToken()
+	if err != nil {
+		return nil, err
+	}
+	c := &Client{BaseURL: cfg.APIBase, Token: token}
+	if !credentials.FromEnv() {
+		c.Refresh = func(ctx context.Context) (string, error) {
+			rt, err := credentials.RefreshToken()
+			if err != nil {
+				return "", err
+			}
+			tokens, err := c.RefreshToken(ctx, rt)
+			if err != nil {
+				return "", err
+			}
+			if err := credentials.Store(tokens.AccessToken, tokens.RefreshToken); err != nil {
+				return "", err
+			}
+			return tokens.AccessToken, nil
+		}
+	}
+	return c, nil
 }
 
 func (c *Client) httpClient() *http.Client {

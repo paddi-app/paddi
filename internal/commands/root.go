@@ -1,30 +1,16 @@
 package commands
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"strings"
-
 	"github.com/urfave/cli/v3"
 
-	"github.com/paddi-app/paddi/internal/api"
-	"github.com/paddi-app/paddi/internal/config"
-	"github.com/paddi-app/paddi/internal/credentials"
+	"github.com/paddi-app/paddi/internal/cmdutil"
 )
 
-type globalOptions struct {
-	JSON    bool
-	Quiet   bool
-	Project string
-	APIBase string
-}
-
-var opts globalOptions
+var opts cmdutil.Options
 
 // Root builds the paddi root command.
 func Root() *cli.Command {
-	opts = globalOptions{}
+	opts = cmdutil.Options{}
 	cli.VersionFlag = &cli.BoolFlag{
 		Name:        "version",
 		Aliases:     []string{"V"},
@@ -51,91 +37,4 @@ func Root() *cli.Command {
 			sourceCommand(),
 		},
 	}
-}
-
-// loadConfig returns the effective config with flag overrides applied
-// (flag > env > file > default).
-func loadConfig() (*config.Config, error) {
-	cfg, err := config.Load()
-	if err != nil {
-		return nil, err
-	}
-	if opts.APIBase != "" {
-		cfg.APIBase = opts.APIBase
-	}
-	if opts.Project != "" {
-		cfg.Context.ProjectID = opts.Project
-	}
-	return cfg, nil
-}
-
-// newClient builds an authenticated API client with automatic token refresh.
-func newClient(cfg *config.Config) (*api.Client, error) {
-	token, err := credentials.AccessToken()
-	if err != nil {
-		return nil, err
-	}
-	c := &api.Client{BaseURL: cfg.APIBase, Token: token}
-	if !credentials.FromEnv() {
-		c.Refresh = func(ctx context.Context) (string, error) {
-			rt, err := credentials.RefreshToken()
-			if err != nil {
-				return "", err
-			}
-			tokens, err := c.RefreshToken(ctx, rt)
-			if err != nil {
-				return "", err
-			}
-			if err := credentials.Store(tokens.AccessToken, tokens.RefreshToken); err != nil {
-				return "", err
-			}
-			return tokens.AccessToken, nil
-		}
-	}
-	return c, nil
-}
-
-func requireProject(cfg *config.Config) (string, error) {
-	return requireContext(cfg.Context.ProjectID, "project", "or pass --project")
-}
-
-func requireWorkspace(cfg *config.Config) (string, error) {
-	return requireContext(cfg.Context.WorkspaceID, "workspace", "")
-}
-
-// requireContext returns id, or an error telling the user to run
-// `paddi <kind> switch` first. altHint, if set, is offered as a shortcut
-// alternative to switching (e.g. "or pass --project").
-func requireContext(id, kind, altHint string) (string, error) {
-	if id != "" {
-		return id, nil
-	}
-	msg := fmt.Sprintf("no %s selected: run `paddi %s switch` first", kind, kind)
-	if altHint != "" {
-		msg = fmt.Sprintf("no %s selected: run `paddi %s switch`, or %s", kind, kind, altHint)
-	}
-	return "", errors.New(msg)
-}
-
-func singleArg(cmd *cli.Command, usage string) (string, error) {
-	if cmd.Args().Len() != 1 {
-		return "", errors.New("usage: " + usage)
-	}
-	return cmd.Args().First(), nil
-}
-
-func orNone(s string) string {
-	if s == "" {
-		return "(not set)"
-	}
-	return s
-}
-
-func truncate(s string, n int) string {
-	s = strings.Join(strings.Fields(s), " ")
-	r := []rune(s)
-	if len(r) <= n {
-		return s
-	}
-	return string(r[:n-1]) + "…"
 }

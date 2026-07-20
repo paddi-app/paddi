@@ -11,6 +11,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
+	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/output"
 )
 
@@ -37,15 +38,15 @@ func specCommand() *cli.Command {
 }
 
 func runSpecList(ctx context.Context, _ *cli.Command) error {
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	projectID, err := requireProject(cfg)
+	projectID, err := cmdutil.RequireProject(cfg)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -73,21 +74,21 @@ func runSpecList(ctx context.Context, _ *cli.Command) error {
 		if s.Locked {
 			locked = "yes"
 		}
-		rows = append(rows, []string{s.ID, truncate(s.Title, 50), requestType, locked, s.CreatedAt.Local().Format("2006-01-02")})
+		rows = append(rows, []string{s.ID, output.Truncate(s.Title, 50), requestType, locked, s.CreatedAt.Local().Format("2006-01-02")})
 	}
 	return output.Table(os.Stdout, []string{"ID", "TITLE", "REQUEST TYPE", "LOCKED", "CREATED"}, rows)
 }
 
 func runSpecInfo(ctx context.Context, cmd *cli.Command) error {
-	id, err := singleArg(cmd, "paddi spec info <spec-id>")
+	id, err := cmdutil.SingleArg(cmd, "paddi spec info <spec-id>")
 	if err != nil {
 		return err
 	}
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -115,15 +116,15 @@ func runSpecInfo(ctx context.Context, cmd *cli.Command) error {
 }
 
 func runSpecView(ctx context.Context, cmd *cli.Command) error {
-	id, err := singleArg(cmd, "paddi spec view <spec-id>")
+	id, err := cmdutil.SingleArg(cmd, "paddi spec view <spec-id>")
 	if err != nil {
 		return err
 	}
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -143,15 +144,15 @@ func runSpecView(ctx context.Context, cmd *cli.Command) error {
 }
 
 func runSpecDownload(ctx context.Context, cmd *cli.Command) error {
-	id, err := singleArg(cmd, "paddi spec download <spec-id> [-o <path>]")
+	id, err := cmdutil.SingleArg(cmd, "paddi spec download <spec-id> [-o <path>]")
 	if err != nil {
 		return err
 	}
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -161,7 +162,7 @@ func runSpecDownload(ctx context.Context, cmd *cli.Command) error {
 	}
 	path := cmd.String("output")
 	if path == "" {
-		path = specFilename(spec)
+		path = output.SpecFilename(spec)
 	}
 	if err := os.WriteFile(path, []byte(spec.Content), 0o644); err != nil {
 		return err
@@ -175,15 +176,15 @@ func runSpecDownload(ctx context.Context, cmd *cli.Command) error {
 }
 
 func runSpecLock(ctx context.Context, cmd *cli.Command) error {
-	id, err := singleArg(cmd, "paddi spec lock <spec-id>")
+	id, err := cmdutil.SingleArg(cmd, "paddi spec lock <spec-id>")
 	if err != nil {
 		return err
 	}
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -198,16 +199,4 @@ func runSpecLock(ctx context.Context, cmd *cli.Command) error {
 		fmt.Printf("Spec %q locked.\n", spec.Title)
 	}
 	return nil
-}
-
-func specFilename(s *api.Spec) string {
-	title := strings.TrimSpace(s.Title)
-	if title == "" {
-		return s.ID + ".md"
-	}
-	repl := strings.NewReplacer(
-		"/", "-", "\\", "-", ":", "-", "*", "-", "?", "-",
-		"\"", "-", "<", "-", ">", "-", "|", "-",
-	)
-	return repl.Replace(title) + ".md"
 }

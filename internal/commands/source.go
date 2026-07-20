@@ -7,6 +7,8 @@ import (
 
 	"github.com/urfave/cli/v3"
 
+	"github.com/paddi-app/paddi/internal/api"
+	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/output"
 )
 
@@ -22,15 +24,15 @@ func sourceCommand() *cli.Command {
 }
 
 func runSourceList(ctx context.Context, _ *cli.Command) error {
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	projectID, err := requireProject(cfg)
+	projectID, err := cmdutil.RequireProject(cfg)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -61,21 +63,21 @@ func runSourceList(ctx context.Context, _ *cli.Command) error {
 		if !s.LastIndexedAt.IsZero() {
 			lastIndexed = s.LastIndexedAt.Local().Format("2006-01-02 15:04")
 		}
-		rows = append(rows, []string{s.ID, s.Provider, s.Type, truncate(name, 40), status, lastIndexed})
+		rows = append(rows, []string{s.ID, s.Provider, s.Type, output.Truncate(name, 40), status, lastIndexed})
 	}
 	return output.Table(os.Stdout, []string{"ID", "PROVIDER", "TYPE", "NAME", "STATUS", "LAST INDEXED"}, rows)
 }
 
 func runSourceIndex(ctx context.Context, cmd *cli.Command) error {
-	id, err := singleArg(cmd, "paddi source index <source-id>")
+	id, err := cmdutil.SingleArg(cmd, "paddi source index <source-id>")
 	if err != nil {
 		return err
 	}
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}

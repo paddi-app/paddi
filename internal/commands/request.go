@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"sort"
 
 	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
+	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/output"
 )
 
@@ -46,15 +46,15 @@ func requestCommand() *cli.Command {
 }
 
 func runRequestList(ctx context.Context, _ *cli.Command) error {
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	projectID, err := requireProject(cfg)
+	projectID, err := cmdutil.RequireProject(cfg)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -74,21 +74,21 @@ func runRequestList(ctx context.Context, _ *cli.Command) error {
 	}
 	rows := make([][]string, 0, len(requests))
 	for _, r := range requests {
-		rows = append(rows, []string{r.ID, truncate(r.Name, 50), r.Type, r.Status, fmt.Sprintf("%.1f", r.Score)})
+		rows = append(rows, []string{r.ID, output.Truncate(r.Name, 50), r.Type, r.Status, fmt.Sprintf("%.1f", r.Score)})
 	}
 	return output.Table(os.Stdout, []string{"ID", "NAME", "TYPE", "STATUS", "SCORE"}, rows)
 }
 
 func runRequestView(ctx context.Context, cmd *cli.Command) error {
-	id, err := singleArg(cmd, "paddi request view <request-id>")
+	id, err := cmdutil.SingleArg(cmd, "paddi request view <request-id>")
 	if err != nil {
 		return err
 	}
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -99,68 +99,20 @@ func runRequestView(ctx context.Context, cmd *cli.Command) error {
 	if opts.JSON {
 		return output.JSON(os.Stdout, raw)
 	}
-	printRequest(req)
+	output.Request(os.Stdout, req)
 	return nil
 }
 
-func printRequest(r *api.Request) {
-	fmt.Printf("%s (%s)\n", r.Name, r.ID)
-	fmt.Printf("Type: %s  Status: %s  Score: %.1f\n", r.Type, r.Status, r.Score)
-	fmt.Printf("RIGE: reach %.2g x impact %.2g x goal %.2g / effort %.2g\n", r.Reach, r.Impact, r.GoalAlignment, r.Effort)
-	if r.Description != "" {
-		fmt.Printf("\nDescription:\n%s\n", r.Description)
-	}
-	if r.Analysis != "" {
-		fmt.Printf("\nAnalysis:\n%s\n", r.Analysis)
-	}
-	if len(r.Captures) > 0 {
-		fmt.Printf("\nCaptures: %d\n", len(r.Captures))
-	}
-	if len(r.SolutionPaths) > 0 {
-		fmt.Println("\nSolution paths:")
-		for i, p := range r.SolutionPaths {
-			multiple := ""
-			if p.Multiple {
-				multiple = " [multiple]"
-			}
-			fmt.Printf("%d. %s%s (%s)\n", i+1, p.Question, multiple, p.ID)
-			if p.Context != "" {
-				fmt.Printf("   Context: %s\n", p.Context)
-			}
-			if p.Impact != "" {
-				fmt.Printf("   Impact: %s\n", p.Impact)
-			}
-			for _, o := range p.Options {
-				fmt.Printf("   - %s — %s\n", o.Label, o.Impact)
-			}
-			for _, sel := range p.Selections {
-				custom := ""
-				if sel.Custom {
-					custom = " (custom)"
-				}
-				fmt.Printf("   > selected: %s%s\n", sel.Label, custom)
-			}
-		}
-	}
-	if r.Spec != nil {
-		locked := ""
-		if r.Spec.Locked {
-			locked = ", locked"
-		}
-		fmt.Printf("\nSpec: %s (%s%s)\n", r.Spec.Title, r.Spec.ID, locked)
-	}
-}
-
 func runRequestRegenerate(ctx context.Context, cmd *cli.Command) error {
-	id, err := singleArg(cmd, "paddi request regenerate <request-id> [-e <expectation>]")
+	id, err := cmdutil.SingleArg(cmd, "paddi request regenerate <request-id> [-e <expectation>]")
 	if err != nil {
 		return err
 	}
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -178,7 +130,7 @@ func runRequestRegenerate(ctx context.Context, cmd *cli.Command) error {
 }
 
 func runRequestDraft(ctx context.Context, cmd *cli.Command) error {
-	id, err := singleArg(cmd, "paddi request draft <request-id> -f <answers.json>")
+	id, err := cmdutil.SingleArg(cmd, "paddi request draft <request-id> -f <answers.json>")
 	if err != nil {
 		return err
 	}
@@ -186,11 +138,11 @@ func runRequestDraft(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := loadConfig()
+	cfg, err := cmdutil.LoadConfig(&opts)
 	if err != nil {
 		return err
 	}
-	client, err := newClient(cfg)
+	client, err := api.NewClient(cfg)
 	if err != nil {
 		return err
 	}
@@ -209,13 +161,7 @@ func runRequestDraft(ctx context.Context, cmd *cli.Command) error {
 
 // readAnswers accepts either a bare answers array or a {"answers": [...]} object.
 func readAnswers(path string) ([]api.Answer, error) {
-	var data []byte
-	var err error
-	if path == "-" {
-		data, err = io.ReadAll(os.Stdin)
-	} else {
-		data, err = os.ReadFile(path)
-	}
+	data, err := cmdutil.ReadFileOrStdin(path)
 	if err != nil {
 		return nil, err
 	}
