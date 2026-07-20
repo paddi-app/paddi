@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	toml "github.com/pelletier/go-toml/v2"
+	"github.com/BurntSushi/toml"
 )
 
 // var (not const) so it can be overridden at build time via -ldflags -X.

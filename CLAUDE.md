@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**Tech Stack**: `urfave/cli/v3` (CLI + config precedence flag→env→file→default via its `Sources` chain, with `urfave/cli-altsrc/v3` as the TOML file source) · `pelletier/go-toml/v2` (config file writes) · `zalando/go-keyring` (token, `PADDI_TOKEN` override) · stdlib `net/http` · `pkg/browser` (device-flow URL) · `go-runewidth`/`encoding/json` (output).
+**Tech Stack**: `urfave/cli/v3` (CLI + config precedence flag→env→file→default via its `Sources` chain, with `urfave/cli-altsrc/v3` as the TOML file source) · `BurntSushi/toml` (config file writes) · `zalando/go-keyring` (token, `PADDI_TOKEN` override) · stdlib `net/http` · `pkg/browser` (device-flow URL) · `go-runewidth`/`encoding/json` (output).
 
 ## Working Principles
 
