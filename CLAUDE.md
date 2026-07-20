@@ -39,3 +39,9 @@ These four rules override everything else below. Align before acting.
 - **`internal/config`** — koanf load/save, XDG paths, precedence; local-machine state only.
 - **`internal/credentials`** — keyring get/set/delete + `PADDI_TOKEN` override; local-machine state only.
 - **`internal/output`** — pure rendering (table / json / markdown); no I/O beyond the writer it is handed.
+
+## Docs Sync
+
+CLI changes to commands, flags, env vars, config keys, output format, or exit codes must be mirrored in `paddi-website`'s `src/content/docs/cli.mdx` before merging (can't be the same commit — separate repos). Its sections map 1:1 to `internal/commands/*.go` command groups, plus global flags, config/env vars, auth flow, and exit codes — use that to find the matching section fast. Internal refactors and bug fixes with no user-visible effect don't need it.
+
+The website repo is usually a sibling checkout (e.g. `../paddi-website`); if it isn't found locally, say so instead of guessing a path or skipping the update silently.
