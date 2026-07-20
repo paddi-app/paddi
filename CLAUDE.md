@@ -77,6 +77,7 @@ These four rules override everything else below. Align before acting.
   - `regenerate <id> [-e expectation]` — regenerate solution paths
   - `draft <id> -f answers.json` — answer solution paths and trigger spec generation
 - `capture` — feed raw feedback into Paddi
+  - `list` — list captures in the current project
   - `create -m <msg> | -f <file> | -` — create a capture from a message, file, or stdin
 - `source` — manage data sources
   - `list` — list data sources in the current project

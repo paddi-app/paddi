@@ -118,6 +118,15 @@ func (c *Client) CreateCapture(ctx context.Context, in CaptureInput) (*Capture, 
 	return &out, raw, nil
 }
 
+func (c *Client) ListCaptures(ctx context.Context, projectID string) ([]Capture, json.RawMessage, error) {
+	var out []Capture
+	raw, err := c.get(ctx, "/capture/", url.Values{"project_id": {projectID}}, &out)
+	if err != nil {
+		return nil, nil, err
+	}
+	return out, raw, nil
+}
+
 func (c *Client) ListSources(ctx context.Context, projectID string) ([]Source, json.RawMessage, error) {
 	var out []Source
 	raw, err := c.get(ctx, "/source", url.Values{"project_id": {projectID}}, &out)
