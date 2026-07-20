@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**Tech Stack**: `urfave/cli/v3` (CLI) · `knadh/koanf/v2` (config: flag→env→file→default) · `zalando/go-keyring` (token, `PADDI_TOKEN` override) · stdlib `net/http` (+ hand-rolled SSE) · `pkg/browser` (device-flow URL) · `text/tabwriter`/`encoding/json` (output).
+**Tech Stack**: `urfave/cli/v3` (CLI) · `knadh/koanf/v2` (config: flag→env→file→default) · `zalando/go-keyring` (token, `PADDI_TOKEN` override) · stdlib `net/http` · `pkg/browser` (device-flow URL) · `go-runewidth`/`encoding/json` (output).
 
 ## Working Principles
 
