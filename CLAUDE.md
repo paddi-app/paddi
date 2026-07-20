@@ -50,10 +50,10 @@ These four rules override everything else below. Align before acting.
   - `status` — show logged-in user and current context
 - `workspace` — manage workspace context
   - `list` — list my workspaces
-  - `use [id]` — set current workspace (interactive picker if `id` omitted)
+  - `switch [id]` — set current workspace (interactive picker if `id` omitted)
 - `project` — manage project context
   - `list` — list projects in the current workspace
-  - `use [id]` — set current project (interactive picker if `id` omitted)
+  - `switch [id]` — set current project (interactive picker if `id` omitted)
 - `spec` — work with specs
   - `list` — list specs in the current project
   - `info <id>` — print spec metadata (no markdown content)

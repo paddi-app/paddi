@@ -21,7 +21,7 @@ func workspaceCommand() *cli.Command {
 		Usage: "Manage workspace context",
 		Commands: []*cli.Command{
 			{Name: "list", Usage: "List my workspaces", Action: runWorkspaceList},
-			{Name: "use", Usage: "Set the current workspace", ArgsUsage: "[workspace-id]", Action: runWorkspaceUse},
+			{Name: "switch", Usage: "Set the current workspace", ArgsUsage: "[workspace-id]", Action: runWorkspaceSwitch},
 		},
 	}
 }
@@ -55,7 +55,7 @@ func runWorkspaceList(ctx context.Context, _ *cli.Command) error {
 	return output.Table(os.Stdout, []string{"ID", "NAME", "ROLE", "PROJECTS"}, rows)
 }
 
-func runWorkspaceUse(ctx context.Context, cmd *cli.Command) error {
+func runWorkspaceSwitch(ctx context.Context, cmd *cli.Command) error {
 	id, name, err := chooseWorkspace(ctx, cmd)
 	if err != nil || id == "" {
 		return err
@@ -82,7 +82,7 @@ func chooseWorkspace(ctx context.Context, cmd *cli.Command) (id, name string, er
 		return cmd.Args().First(), "", nil
 	case 0:
 	default:
-		return "", "", errors.New("usage: paddi workspace use [workspace-id]")
+		return "", "", errors.New("usage: paddi workspace switch [workspace-id]")
 	}
 
 	cfg, err := loadConfig()

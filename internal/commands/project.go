@@ -20,7 +20,7 @@ func projectCommand() *cli.Command {
 		Usage: "Manage project context",
 		Commands: []*cli.Command{
 			{Name: "list", Usage: "List projects in the current workspace", Action: runProjectList},
-			{Name: "use", Usage: "Set the current project", ArgsUsage: "[project-id]", Action: runProjectUse},
+			{Name: "switch", Usage: "Set the current project", ArgsUsage: "[project-id]", Action: runProjectSwitch},
 		},
 	}
 }
@@ -54,7 +54,7 @@ func runProjectList(ctx context.Context, _ *cli.Command) error {
 	return output.Table(os.Stdout, []string{"ID", "NAME", "DESCRIPTION"}, rows)
 }
 
-func runProjectUse(ctx context.Context, cmd *cli.Command) error {
+func runProjectSwitch(ctx context.Context, cmd *cli.Command) error {
 	proj, err := chooseProject(ctx, cmd)
 	if err != nil || proj == nil {
 		return err
@@ -85,7 +85,7 @@ func runProjectUse(ctx context.Context, cmd *cli.Command) error {
 // cancels the picker.
 func chooseProject(ctx context.Context, cmd *cli.Command) (*api.Project, error) {
 	if cmd.Args().Len() > 1 {
-		return nil, errors.New("usage: paddi project use [project-id]")
+		return nil, errors.New("usage: paddi project switch [project-id]")
 	}
 
 	cfg, err := loadConfig()

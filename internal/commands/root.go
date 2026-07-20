@@ -96,7 +96,7 @@ func newClient(cfg *config.Config) (*api.Client, error) {
 
 func requireProject(cfg *config.Config) (string, error) {
 	if cfg.Context.ProjectID == "" {
-		return "", errors.New("no project selected: run `paddi project use <id>` or pass --project")
+		return "", errors.New("no project selected: run `paddi project switch <id>` or pass --project")
 	}
 	return cfg.Context.ProjectID, nil
 }
