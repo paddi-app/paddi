@@ -27,8 +27,6 @@ func captureCommand() *cli.Command {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "message", Aliases: []string{"m"}, Usage: "feedback text"},
 					&cli.StringFlag{Name: "file", Aliases: []string{"f"}, Usage: "read feedback from a file"},
-					&cli.StringFlag{Name: "origin", Usage: "origin id"},
-					&cli.StringSliceFlag{Name: "tag", Usage: "tag name (repeatable)"},
 				},
 				Action: runCaptureCreate,
 			},
@@ -85,8 +83,6 @@ func runCaptureCreate(ctx context.Context, cmd *cli.Command) error {
 	capture, raw, err := client.CreateCapture(ctx, api.CaptureInput{
 		ProjectID:   projectID,
 		Description: description,
-		OriginID:    cmd.String("origin"),
-		Tags:        cmd.StringSlice("tag"),
 	})
 	if err != nil {
 		return err

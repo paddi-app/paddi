@@ -103,10 +103,8 @@ func (c *Client) DraftRequest(ctx context.Context, id string, answers []Answer) 
 }
 
 type CaptureInput struct {
-	ProjectID   string   `json:"project_id"`
-	Description string   `json:"description"`
-	OriginID    string   `json:"origin_id,omitempty"`
-	Tags        []string `json:"tags,omitempty"`
+	ProjectID   string `json:"project_id"`
+	Description string `json:"description"`
 }
 
 func (c *Client) CreateCapture(ctx context.Context, in CaptureInput) (*Capture, json.RawMessage, error) {

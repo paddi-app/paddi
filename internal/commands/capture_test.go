@@ -163,7 +163,7 @@ func TestRunCaptureCreate_Success(t *testing.T) {
 
 	t.Run("normal output", func(t *testing.T) {
 		withOpts(t, func(o *cmdutil.Options) { o.Project = "p1"; o.JSON = false; o.Quiet = false })
-		cmd := parsedCmd(t, "create", captureFlags, "-m", "it broke", "--origin", "o1", "--tag", "bug")
+		cmd := parsedCmd(t, "create", captureFlags, "-m", "it broke")
 		out := captureStdout(t, func() {
 			if err := runCaptureCreate(context.Background(), cmd); err != nil {
 				t.Fatalf("runCaptureCreate() error = %v", err)
@@ -172,8 +172,8 @@ func TestRunCaptureCreate_Success(t *testing.T) {
 		if out != "Capture c1 created.\n" {
 			t.Errorf("stdout = %q, want %q", out, "Capture c1 created.\n")
 		}
-		if gotBody.ProjectID != "p1" || gotBody.Description != "it broke" || gotBody.OriginID != "o1" {
-			t.Errorf("request body = %+v, want project p1, description %q, origin o1", gotBody, "it broke")
+		if gotBody.ProjectID != "p1" || gotBody.Description != "it broke" {
+			t.Errorf("request body = %+v, want project p1, description %q", gotBody, "it broke")
 		}
 	})
 
