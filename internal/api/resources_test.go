@@ -174,6 +174,40 @@ func TestRegenerateRequest_Success(t *testing.T) {
 	}
 }
 
+func TestListCaptures(t *testing.T) {
+	tests := []struct {
+		name       string
+		statusCode int
+		wantErr    bool
+	}{
+		{"success", http.StatusOK, false},
+		{"server error", http.StatusInternalServerError, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/capture/" || r.URL.RawQuery != "project_id=p1" {
+					t.Errorf("request = %s?%s, want /capture/?project_id=p1", r.URL.Path, r.URL.RawQuery)
+				}
+				w.WriteHeader(tt.statusCode)
+				if tt.statusCode == http.StatusOK {
+					_ = json.NewEncoder(w).Encode([]Capture{{ID: "c1"}})
+				}
+			}))
+			defer srv.Close()
+
+			got, _, err := (&Client{BaseURL: srv.URL}).ListCaptures(context.Background(), "p1")
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ListCaptures() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr && (len(got) != 1 || got[0].ID != "c1") {
+				t.Errorf("ListCaptures() = %+v, want one capture c1", got)
+			}
+		})
+	}
+}
+
 func TestListSources_Success(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/source" || r.URL.RawQuery != "project_id=p1" {
