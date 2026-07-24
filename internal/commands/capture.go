@@ -36,7 +36,7 @@ func captureCommand() *cli.Command {
 }
 
 func runCaptureList(ctx context.Context, _ *cli.Command) error {
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func runCaptureCreate(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}

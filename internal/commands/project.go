@@ -27,7 +27,7 @@ func projectCommand() *cli.Command {
 }
 
 func runProjectList(ctx context.Context, _ *cli.Command) error {
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func chooseProject(ctx context.Context, cmd *cli.Command) (*api.Project, error) 
 		return nil, errors.New("usage: paddi project switch [project-id]")
 	}
 
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return nil, err
 	}

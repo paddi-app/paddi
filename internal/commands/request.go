@@ -47,7 +47,7 @@ func requestCommand() *cli.Command {
 }
 
 func runRequestList(ctx context.Context, _ *cli.Command) error {
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func runRequestView(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func runRequestRegenerate(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func runRequestDraft(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}

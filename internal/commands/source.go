@@ -7,7 +7,6 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/paddi-app/paddi/internal/api"
 	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/output"
 )
@@ -25,7 +24,7 @@ func sourceCommand() *cli.Command {
 }
 
 func runSourceList(ctx context.Context, _ *cli.Command) error {
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -66,7 +65,7 @@ func runSourceIndex(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}

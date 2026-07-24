@@ -10,7 +10,6 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/paddi-app/paddi/internal/api"
 	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/output"
 )
@@ -39,7 +38,7 @@ func specCommand() *cli.Command {
 }
 
 func runSpecList(ctx context.Context, _ *cli.Command) error {
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -77,7 +76,7 @@ func runSpecInfo(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -109,7 +108,7 @@ func runSpecView(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -133,7 +132,7 @@ func runSpecDownload(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -161,7 +160,7 @@ func runSpecLock(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}

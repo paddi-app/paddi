@@ -7,11 +7,17 @@ import (
 	"github.com/urfave/cli-altsrc/v3/toml"
 	"github.com/urfave/cli/v3"
 
+	"github.com/paddi-app/paddi/internal/api"
 	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/config"
 )
 
 var opts cmdutil.Options
+
+// newClient builds an API client for the current API base.
+func newClient() (*api.Client, error) {
+	return api.NewClient(opts.APIBase)
+}
 
 // requireProject is a Before hook that fails a command group early if no
 // project context is set. Actions that need the ID still call

@@ -27,7 +27,7 @@ func workspaceCommand() *cli.Command {
 }
 
 func runWorkspaceList(ctx context.Context, _ *cli.Command) error {
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func chooseWorkspace(ctx context.Context, cmd *cli.Command) (id, name string, er
 		return "", "", errors.New("usage: paddi workspace switch [workspace-id]")
 	}
 
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return "", "", err
 	}

@@ -98,7 +98,7 @@ func runOnboarding(ctx context.Context) {
 		return
 	}
 
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "warning: skipping setup: %v\n", err)
 		return
@@ -182,7 +182,7 @@ func runAuthLogout(ctx context.Context, _ *cli.Command) error {
 }
 
 func runAuthStatus(ctx context.Context, _ *cli.Command) error {
-	client, err := api.NewClient(opts.APIBase)
+	client, err := newClient()
 	if err != nil {
 		return err
 	}
