@@ -14,10 +14,13 @@ import (
 	"github.com/paddi-app/paddi/internal/cmdutil"
 )
 
-func TestRunSpecList_RequiresProject(t *testing.T) {
+// The group's Before hook must reject id-based subcommands (which never checked
+// the project themselves) before they reach the network.
+func TestSpecCommand_RequiresProjectBeforeNetwork(t *testing.T) {
 	withOpts(t, func(o *cmdutil.Options) { o.Project = "" })
-	if err := runSpecList(context.Background(), nil); err == nil || !strings.Contains(err.Error(), "project") {
-		t.Errorf("runSpecList() error = %v, want a missing-project error", err)
+	err := specCommand().Run(context.Background(), []string{"spec", "view", "some-id"})
+	if err == nil || !strings.Contains(err.Error(), "project") {
+		t.Errorf("spec view without project: error = %v, want a missing-project error", err)
 	}
 }
 

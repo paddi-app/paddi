@@ -51,10 +51,13 @@ func TestReadAnswers(t *testing.T) {
 	}
 }
 
-func TestRunRequestList_RequiresProject(t *testing.T) {
+// The group's Before hook must reject id-based subcommands (which never checked
+// the project themselves) before they reach the network.
+func TestRequestCommand_RequiresProjectBeforeNetwork(t *testing.T) {
 	withOpts(t, func(o *cmdutil.Options) { o.Project = "" })
-	if err := runRequestList(context.Background(), nil); err == nil || !strings.Contains(err.Error(), "project") {
-		t.Errorf("runRequestList() error = %v, want a missing-project error", err)
+	err := requestCommand().Run(context.Background(), []string{"request", "view", "some-id"})
+	if err == nil || !strings.Contains(err.Error(), "project") {
+		t.Errorf("request view without project: error = %v, want a missing-project error", err)
 	}
 }
 

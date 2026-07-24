@@ -14,8 +14,9 @@ import (
 
 func sourceCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "source",
-		Usage: "Manage data sources",
+		Name:   "source",
+		Usage:  "Manage data sources",
+		Before: requireProject,
 		Commands: []*cli.Command{
 			{Name: "list", Usage: "List data sources in the current project", Action: runSourceList},
 			{Name: "index", Usage: "Trigger re-indexing of a source", ArgsUsage: "<source-id>", Action: runSourceIndex},
@@ -24,15 +25,11 @@ func sourceCommand() *cli.Command {
 }
 
 func runSourceList(ctx context.Context, _ *cli.Command) error {
-	projectID, err := cmdutil.RequireProject(opts.Project)
-	if err != nil {
-		return err
-	}
 	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
-	sources, raw, err := client.ListSources(ctx, projectID)
+	sources, raw, err := client.ListSources(ctx, opts.Project)
 	if err != nil {
 		return err
 	}

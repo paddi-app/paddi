@@ -18,8 +18,9 @@ import (
 
 func requestCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "request",
-		Usage: "Work with feedback requests",
+		Name:   "request",
+		Usage:  "Work with feedback requests",
+		Before: requireProject,
 		Commands: []*cli.Command{
 			{Name: "list", Usage: "List requests in the current project, sorted by RIGE score", Action: runRequestList},
 			{Name: "view", Usage: "Show a request's analysis, score and solution paths", ArgsUsage: "<request-id>", Action: runRequestView},
@@ -46,15 +47,11 @@ func requestCommand() *cli.Command {
 }
 
 func runRequestList(ctx context.Context, _ *cli.Command) error {
-	projectID, err := cmdutil.RequireProject(opts.Project)
-	if err != nil {
-		return err
-	}
 	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
-	requests, raw, err := client.ListRequests(ctx, projectID)
+	requests, raw, err := client.ListRequests(ctx, opts.Project)
 	if err != nil {
 		return err
 	}

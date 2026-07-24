@@ -12,10 +12,13 @@ import (
 	"github.com/paddi-app/paddi/internal/cmdutil"
 )
 
-func TestRunSourceList_RequiresProject(t *testing.T) {
+// The group's Before hook guards every subcommand; the list action itself no
+// longer re-checks, so the guard is exercised through the command tree.
+func TestSourceCommand_RequiresProjectBeforeNetwork(t *testing.T) {
 	withOpts(t, func(o *cmdutil.Options) { o.Project = "" })
-	if err := runSourceList(context.Background(), nil); err == nil || !strings.Contains(err.Error(), "project") {
-		t.Errorf("runSourceList() error = %v, want a missing-project error", err)
+	err := sourceCommand().Run(context.Background(), []string{"source", "index", "some-id"})
+	if err == nil || !strings.Contains(err.Error(), "project") {
+		t.Errorf("source index without project: error = %v, want a missing-project error", err)
 	}
 }
 

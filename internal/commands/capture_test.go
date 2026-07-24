@@ -14,10 +14,13 @@ import (
 
 var captureFlags = captureCommand().Commands[1].Flags
 
-func TestRunCaptureList_RequiresProject(t *testing.T) {
+// The group's Before hook guards every subcommand; the list action itself no
+// longer re-checks, so the guard is exercised through the command tree.
+func TestCaptureCommand_RequiresProjectBeforeNetwork(t *testing.T) {
 	withOpts(t, func(o *cmdutil.Options) { o.Project = "" })
-	if err := runCaptureList(context.Background(), nil); err == nil || !strings.Contains(err.Error(), "project") {
-		t.Errorf("runCaptureList() error = %v, want a missing-project error", err)
+	err := captureCommand().Run(context.Background(), []string{"capture", "create", "-m", "hi"})
+	if err == nil || !strings.Contains(err.Error(), "project") {
+		t.Errorf("capture create without project: error = %v, want a missing-project error", err)
 	}
 }
 

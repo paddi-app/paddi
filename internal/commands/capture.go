@@ -16,8 +16,9 @@ import (
 
 func captureCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "capture",
-		Usage: "Feed raw feedback into Paddi",
+		Name:   "capture",
+		Usage:  "Feed raw feedback into Paddi",
+		Before: requireProject,
 		Commands: []*cli.Command{
 			{Name: "list", Usage: "List captures in the current project", Action: runCaptureList},
 			{
@@ -35,15 +36,11 @@ func captureCommand() *cli.Command {
 }
 
 func runCaptureList(ctx context.Context, _ *cli.Command) error {
-	projectID, err := cmdutil.RequireProject(opts.Project)
-	if err != nil {
-		return err
-	}
 	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
-	captures, raw, err := client.ListCaptures(ctx, projectID)
+	captures, raw, err := client.ListCaptures(ctx, opts.Project)
 	if err != nil {
 		return err
 	}

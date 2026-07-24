@@ -17,8 +17,9 @@ import (
 
 func specCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "spec",
-		Usage: "Work with specs",
+		Name:   "spec",
+		Usage:  "Work with specs",
+		Before: requireProject,
 		Commands: []*cli.Command{
 			{Name: "list", Usage: "List specs in the current project", Action: runSpecList},
 			{Name: "info", Usage: "Print a spec's metadata (without its markdown content)", ArgsUsage: "<spec-id>", Action: runSpecInfo},
@@ -38,15 +39,11 @@ func specCommand() *cli.Command {
 }
 
 func runSpecList(ctx context.Context, _ *cli.Command) error {
-	projectID, err := cmdutil.RequireProject(opts.Project)
-	if err != nil {
-		return err
-	}
 	client, err := api.NewClient(opts.APIBase)
 	if err != nil {
 		return err
 	}
-	specs, raw, err := client.ListSpecs(ctx, projectID)
+	specs, raw, err := client.ListSpecs(ctx, opts.Project)
 	if err != nil {
 		return err
 	}

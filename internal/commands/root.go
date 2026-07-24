@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"context"
+
 	altsrc "github.com/urfave/cli-altsrc/v3"
 	"github.com/urfave/cli-altsrc/v3/toml"
 	"github.com/urfave/cli/v3"
@@ -10,6 +12,14 @@ import (
 )
 
 var opts cmdutil.Options
+
+// requireProject is a Before hook that fails a command group early if no
+// project context is set. Actions that need the ID still call
+// cmdutil.RequireProject themselves.
+func requireProject(ctx context.Context, _ *cli.Command) (context.Context, error) {
+	_, err := cmdutil.RequireProject(opts.Project)
+	return ctx, err
+}
 
 // Root builds the paddi root command.
 func Root() *cli.Command {
