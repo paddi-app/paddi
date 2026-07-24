@@ -72,15 +72,12 @@ func OrNone(s string) string {
 	return s
 }
 
-// Truncate collapses whitespace in s and shortens it to n runes, appending an
-// ellipsis when truncated.
+// Truncate collapses whitespace in s and shortens it to n display columns,
+// appending an ellipsis when truncated. Display width (not rune count) keeps
+// CJK and other double-width runes aligned with Table.
 func Truncate(s string, n int) string {
 	s = strings.Join(strings.Fields(s), " ")
-	r := []rune(s)
-	if len(r) <= n {
-		return s
-	}
-	return string(r[:n-1]) + "…"
+	return runewidth.Truncate(s, n, "…")
 }
 
 // SpecFilename derives a safe local filename from a spec's title.

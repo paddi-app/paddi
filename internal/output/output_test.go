@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattn/go-runewidth"
+
 	"github.com/paddi-app/paddi/internal/api"
 )
 
@@ -63,13 +65,22 @@ func TestTruncate(t *testing.T) {
 		{"collapses internal whitespace", "a  b\nc", 10, "a b c"},
 		{"exact limit unchanged", "abcde", 5, "abcde"},
 		{"truncates with ellipsis", "abcdef", 5, "abcd…"},
-		{"counts runes not bytes", "日本語のテスト", 3, "日本…"},
+		{"measures display width not runes", "日本語のテスト", 5, "日本…"},
+		{"wide runes under limit unchanged", "日本", 4, "日本"},
+		{"drops a whole wide rune to leave room for ellipsis", "日本語", 5, "日本…"},
+		{"never splits below a wide rune width", "日本語", 4, "日…"},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := Truncate(tc.s, tc.n); got != tc.want {
+			got := Truncate(tc.s, tc.n)
+			if got != tc.want {
 				t.Errorf("Truncate(%q, %d) = %q, want %q", tc.s, tc.n, got, tc.want)
+			}
+			// The reason Truncate uses display width: the result must never
+			// exceed n columns, or it breaks Table's alignment.
+			if w := runewidth.StringWidth(got); w > tc.n {
+				t.Errorf("Truncate(%q, %d) width = %d, exceeds limit", tc.s, tc.n, w)
 			}
 		})
 	}
