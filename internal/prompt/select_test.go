@@ -45,6 +45,18 @@ func TestErase(t *testing.T) {
 	}
 }
 
+func TestRenderedLines_Wrap(t *testing.T) {
+	items := []Item{{Label: "short"}, {Label: strings.Repeat("x", 20)}}
+	// width 10: header "hi"=1 row, "short"(2+5=7)=1 row, long(2+20=22)=3 rows.
+	if got := renderedLines(10, "hi", items); got != 5 {
+		t.Errorf("renderedLines wrap = %d, want 5", got)
+	}
+	// wide terminal: no wrapping, header + one row per item.
+	if got := renderedLines(80, "hi", items); got != 3 {
+		t.Errorf("renderedLines nowrap = %d, want 3", got)
+	}
+}
+
 func TestIsUpIsDown(t *testing.T) {
 	cases := []struct {
 		name     string

@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mattn/go-runewidth"
 	"golang.org/x/term"
 )
 
@@ -43,7 +44,11 @@ func Select(label string, items []Item) (Item, error) {
 	defer func() { _ = term.Restore(fd, state) }()
 
 	out := os.Stderr
-	lines := len(items) + 1 // header + one line per item
+	width, _, err := term.GetSize(fd)
+	if err != nil || width <= 0 {
+		width = 80 // ponytail: fallback when size is unavailable
+	}
+	lines := renderedLines(width, label, items) // physical rows, accounting for wrap
 
 	fmt.Fprint(out, "\x1b[?25l")       // hide cursor
 	defer fmt.Fprint(out, "\x1b[?25h") // show cursor
@@ -99,6 +104,24 @@ func render(out io.Writer, label string, items []Item, cursor int) {
 		}
 	}
 	fmt.Fprint(out, b.String())
+}
+
+// renderedLines counts the physical terminal rows render() produces, treating a
+// line wider than the terminal as wrapping onto extra rows. The color escapes
+// and "> "/"  " prefix occupy no or 2 columns respectively.
+func renderedLines(width int, label string, items []Item) int {
+	rows := rowsFor(runewidth.StringWidth(label), width)
+	for _, it := range items {
+		rows += rowsFor(2+runewidth.StringWidth(it.Label), width)
+	}
+	return rows
+}
+
+func rowsFor(cells, width int) int {
+	if cells <= 0 {
+		return 1
+	}
+	return (cells + width - 1) / width // ceil(cells/width)
 }
 
 func erase(out io.Writer, lines int) {
