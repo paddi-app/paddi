@@ -110,6 +110,12 @@ func chooseProject(ctx context.Context, cmd *cli.Command) (*api.Project, error) 
 	if err != nil {
 		return nil, err
 	}
+	return pickProject(ctx, client, workspaceID)
+}
+
+// pickProject presents an interactive picker over the given workspace's
+// projects. Returns (nil, nil) when the user cancels the picker.
+func pickProject(ctx context.Context, client *api.Client, workspaceID string) (*api.Project, error) {
 	projects, _, err := client.ListProjects(ctx, workspaceID)
 	if err != nil {
 		return nil, err

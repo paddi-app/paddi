@@ -84,8 +84,53 @@ func runAuthLogin(ctx context.Context, _ *cli.Command) error {
 			return err
 		}
 		fmt.Println("Logged in.")
+		runOnboarding(ctx)
 		return nil
 	}
+}
+
+// runOnboarding guides a freshly logged-in user through picking a workspace and
+// project, mirroring `workspace switch` / `project switch`. It is best-effort:
+// it is skipped in non-interactive/quiet runs, and any failure is reported as a
+// warning rather than failing the login.
+func runOnboarding(ctx context.Context) {
+	if opts.Quiet || !stdinIsTTY() {
+		return
+	}
+
+	client, err := api.NewClient(opts.APIBase)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: skipping setup: %v\n", err)
+		return
+	}
+
+	wsID, wsName, err := pickWorkspace(ctx, client)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: skipping setup: %v\n", err)
+		return
+	}
+	if wsID == "" { // cancelled
+		return
+	}
+	if err := config.Set(config.KeyWorkspaceID, wsID); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: %v\n", err)
+		return
+	}
+	fmt.Printf("Workspace set to %s\n", wsName)
+
+	proj, err := pickProject(ctx, client, wsID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: skipping setup: %v\n", err)
+		return
+	}
+	if proj == nil { // cancelled
+		return
+	}
+	if err := config.Set(config.KeyProjectID, proj.ID); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: %v\n", err)
+		return
+	}
+	fmt.Printf("Project set to %s\n", proj.Name)
 }
 
 func stdinIsTTY() bool {

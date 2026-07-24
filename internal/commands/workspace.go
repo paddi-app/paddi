@@ -89,6 +89,13 @@ func chooseWorkspace(ctx context.Context, cmd *cli.Command) (id, name string, er
 	if err != nil {
 		return "", "", err
 	}
+	return pickWorkspace(ctx, client)
+}
+
+// pickWorkspace presents an interactive picker over all of the user's
+// workspaces. The returned name is the workspace label. Both values are empty
+// (with a nil error) when the user cancels the picker.
+func pickWorkspace(ctx context.Context, client *api.Client) (id, name string, err error) {
 	workspaces, _, err := client.ListWorkspaces(ctx)
 	if err != nil {
 		return "", "", err
