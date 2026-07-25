@@ -18,7 +18,7 @@ import (
 // the project themselves) before they reach the network.
 func TestSpecCommand_RequiresProjectBeforeNetwork(t *testing.T) {
 	withOpts(t, func(o *cmdutil.Options) { o.Project = "" })
-	err := specCommand().Run(context.Background(), []string{"spec", "view", "some-id"})
+	err := specCommand.Run(context.Background(), []string{"spec", "view", "some-id"})
 	if err == nil || !strings.Contains(err.Error(), "project") {
 		t.Errorf("spec view without project: error = %v, want a missing-project error", err)
 	}
@@ -184,7 +184,7 @@ func TestRunSpecDownload_UsesExplicitOutputPath(t *testing.T) {
 	})
 	withOpts(t, func(o *cmdutil.Options) { o.Quiet = false })
 	dest := filepath.Join(t.TempDir(), "out.md")
-	cmd := parsedCmd(t, "download", specCommand().Commands[3].Flags, "s1", "-o", dest)
+	cmd := parsedCmd(t, "download", specCommand.Commands[3].Flags, "s1", "-o", dest)
 	out := captureStdout(t, func() {
 		if err := runSpecDownload(context.Background(), cmd); err != nil {
 			t.Fatalf("runSpecDownload() error = %v", err)
@@ -207,7 +207,7 @@ func TestRunSpecDownload_FallsBackToSpecFilename(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(api.Spec{ID: "s1", Title: "My Spec", Content: "spec body"})
 	})
 	t.Chdir(t.TempDir())
-	cmd := parsedCmd(t, "download", specCommand().Commands[3].Flags, "s1")
+	cmd := parsedCmd(t, "download", specCommand.Commands[3].Flags, "s1")
 	captureStdout(t, func() {
 		if err := runSpecDownload(context.Background(), cmd); err != nil {
 			t.Fatalf("runSpecDownload() error = %v", err)
@@ -224,7 +224,7 @@ func TestRunSpecDownload_QuietPrintsOnlyThePath(t *testing.T) {
 	})
 	withOpts(t, func(o *cmdutil.Options) { o.Quiet = true })
 	dest := filepath.Join(t.TempDir(), "out.md")
-	cmd := parsedCmd(t, "download", specCommand().Commands[3].Flags, "s1", "-o", dest)
+	cmd := parsedCmd(t, "download", specCommand.Commands[3].Flags, "s1", "-o", dest)
 	out := captureStdout(t, func() {
 		if err := runSpecDownload(context.Background(), cmd); err != nil {
 			t.Fatalf("runSpecDownload() error = %v", err)

@@ -16,34 +16,32 @@ import (
 	"github.com/paddi-app/paddi/internal/output"
 )
 
-func requestCommand() *cli.Command {
-	return &cli.Command{
-		Name:   "request",
-		Usage:  "Work with feedback requests",
-		Before: requireProject,
-		Commands: []*cli.Command{
-			{Name: "list", Usage: "List requests in the current project, sorted by RIGE score", Action: runRequestList},
-			{Name: "view", Usage: "Show a request's analysis, score and solution paths", ArgsUsage: "<request-id>", Action: runRequestView},
-			{
-				Name:      "regenerate",
-				Usage:     "Regenerate a request's solution paths",
-				ArgsUsage: "<request-id>",
-				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "expectation", Aliases: []string{"e"}, Usage: "expectation guiding the regeneration"},
-				},
-				Action: runRequestRegenerate,
+var requestCommand = &cli.Command{
+	Name:   "request",
+	Usage:  "Work with feedback requests",
+	Before: requireProject,
+	Commands: []*cli.Command{
+		{Name: "list", Usage: "List requests in the current project, sorted by RIGE score", Action: runRequestList},
+		{Name: "view", Usage: "Show a request's analysis, score and solution paths", ArgsUsage: "<request-id>", Action: runRequestView},
+		{
+			Name:      "regenerate",
+			Usage:     "Regenerate a request's solution paths",
+			ArgsUsage: "<request-id>",
+			Flags: []cli.Flag{
+				&cli.StringFlag{Name: "expectation", Aliases: []string{"e"}, Usage: "expectation guiding the regeneration"},
 			},
-			{
-				Name:      "draft",
-				Usage:     "Answer solution paths and trigger spec generation",
-				ArgsUsage: "<request-id>",
-				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "file", Aliases: []string{"f"}, Required: true, Usage: "answers JSON file (use '-' for stdin)"},
-				},
-				Action: runRequestDraft,
-			},
+			Action: runRequestRegenerate,
 		},
-	}
+		{
+			Name:      "draft",
+			Usage:     "Answer solution paths and trigger spec generation",
+			ArgsUsage: "<request-id>",
+			Flags: []cli.Flag{
+				&cli.StringFlag{Name: "file", Aliases: []string{"f"}, Required: true, Usage: "answers JSON file (use '-' for stdin)"},
+			},
+			Action: runRequestDraft,
+		},
+	},
 }
 
 func runRequestList(ctx context.Context, _ *cli.Command) error {

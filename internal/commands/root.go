@@ -55,13 +55,13 @@ func Root() *cli.Command {
 			&cli.StringFlag{Name: "workspace", Hidden: true, Destination: &opts.WorkspaceID, Sources: cli.NewValueSourceChain(toml.TOML(config.KeyWorkspaceID, configFile))},
 		},
 		Commands: []*cli.Command{
-			authCommand(),
-			workspaceCommand(),
-			projectCommand(),
-			specCommand(),
-			requestCommand(),
-			captureCommand(),
-			sourceCommand(),
+			authCommand,
+			workspaceCommand,
+			projectCommand,
+			specCommand,
+			requestCommand,
+			captureCommand,
+			sourceCommand,
 		},
 	}
 }

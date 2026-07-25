@@ -15,15 +15,13 @@ import (
 	"github.com/paddi-app/paddi/internal/prompt"
 )
 
-func workspaceCommand() *cli.Command {
-	return &cli.Command{
-		Name:  "workspace",
-		Usage: "Manage workspace context",
-		Commands: []*cli.Command{
-			{Name: "list", Usage: "List my workspaces", Action: runWorkspaceList},
-			{Name: "switch", Usage: "Set the current workspace", ArgsUsage: "[workspace-id]", Action: runWorkspaceSwitch},
-		},
-	}
+var workspaceCommand = &cli.Command{
+	Name:  "workspace",
+	Usage: "Manage workspace context",
+	Commands: []*cli.Command{
+		{Name: "list", Usage: "List my workspaces", Action: runWorkspaceList},
+		{Name: "switch", Usage: "Set the current workspace", ArgsUsage: "[workspace-id]", Action: runWorkspaceSwitch},
+	},
 }
 
 func runWorkspaceList(ctx context.Context, _ *cli.Command) error {

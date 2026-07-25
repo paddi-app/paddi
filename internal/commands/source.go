@@ -11,16 +11,14 @@ import (
 	"github.com/paddi-app/paddi/internal/output"
 )
 
-func sourceCommand() *cli.Command {
-	return &cli.Command{
-		Name:   "source",
-		Usage:  "Manage data sources",
-		Before: requireProject,
-		Commands: []*cli.Command{
-			{Name: "list", Usage: "List data sources in the current project", Action: runSourceList},
-			{Name: "index", Usage: "Trigger re-indexing of a source", ArgsUsage: "<source-id>", Action: runSourceIndex},
-		},
-	}
+var sourceCommand = &cli.Command{
+	Name:   "source",
+	Usage:  "Manage data sources",
+	Before: requireProject,
+	Commands: []*cli.Command{
+		{Name: "list", Usage: "List data sources in the current project", Action: runSourceList},
+		{Name: "index", Usage: "Trigger re-indexing of a source", ArgsUsage: "<source-id>", Action: runSourceIndex},
+	},
 }
 
 func runSourceList(ctx context.Context, _ *cli.Command) error {

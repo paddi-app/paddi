@@ -12,13 +12,13 @@ import (
 	"github.com/paddi-app/paddi/internal/cmdutil"
 )
 
-var captureFlags = captureCommand().Commands[1].Flags
+var captureFlags = captureCommand.Commands[1].Flags
 
 // The group's Before hook guards every subcommand; the list action itself no
 // longer re-checks, so the guard is exercised through the command tree.
 func TestCaptureCommand_RequiresProjectBeforeNetwork(t *testing.T) {
 	withOpts(t, func(o *cmdutil.Options) { o.Project = "" })
-	err := captureCommand().Run(context.Background(), []string{"capture", "create", "-m", "hi"})
+	err := captureCommand.Run(context.Background(), []string{"capture", "create", "-m", "hi"})
 	if err == nil || !strings.Contains(err.Error(), "project") {
 		t.Errorf("capture create without project: error = %v, want a missing-project error", err)
 	}

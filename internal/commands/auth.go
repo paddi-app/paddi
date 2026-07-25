@@ -18,16 +18,14 @@ import (
 	"github.com/paddi-app/paddi/pkg/browser"
 )
 
-func authCommand() *cli.Command {
-	return &cli.Command{
-		Name:  "auth",
-		Usage: "Authenticate with Paddi",
-		Commands: []*cli.Command{
-			{Name: "login", Usage: "Log in via the browser (device flow)", Action: runAuthLogin},
-			{Name: "logout", Usage: "Revoke the session and clear local credentials", Action: runAuthLogout},
-			{Name: "status", Usage: "Show the logged-in user and current context", Action: runAuthStatus},
-		},
-	}
+var authCommand = &cli.Command{
+	Name:  "auth",
+	Usage: "Authenticate with Paddi",
+	Commands: []*cli.Command{
+		{Name: "login", Usage: "Log in via the browser (device flow)", Action: runAuthLogin},
+		{Name: "logout", Usage: "Revoke the session and clear local credentials", Action: runAuthLogout},
+		{Name: "status", Usage: "Show the logged-in user and current context", Action: runAuthStatus},
+	},
 }
 
 func runAuthLogin(ctx context.Context, _ *cli.Command) error {

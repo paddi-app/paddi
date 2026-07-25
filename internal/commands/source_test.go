@@ -16,7 +16,7 @@ import (
 // longer re-checks, so the guard is exercised through the command tree.
 func TestSourceCommand_RequiresProjectBeforeNetwork(t *testing.T) {
 	withOpts(t, func(o *cmdutil.Options) { o.Project = "" })
-	err := sourceCommand().Run(context.Background(), []string{"source", "index", "some-id"})
+	err := sourceCommand.Run(context.Background(), []string{"source", "index", "some-id"})
 	if err == nil || !strings.Contains(err.Error(), "project") {
 		t.Errorf("source index without project: error = %v, want a missing-project error", err)
 	}

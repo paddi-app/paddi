@@ -14,27 +14,25 @@ import (
 	"github.com/paddi-app/paddi/internal/output"
 )
 
-func specCommand() *cli.Command {
-	return &cli.Command{
-		Name:   "spec",
-		Usage:  "Work with specs",
-		Before: requireProject,
-		Commands: []*cli.Command{
-			{Name: "list", Usage: "List specs in the current project", Action: runSpecList},
-			{Name: "info", Usage: "Print a spec's metadata (without its markdown content)", ArgsUsage: "<spec-id>", Action: runSpecInfo},
-			{Name: "view", Usage: "Print a spec's markdown content", ArgsUsage: "<spec-id>", Action: runSpecView},
-			{
-				Name:      "download",
-				Usage:     "Write a spec's markdown content to a local file",
-				ArgsUsage: "<spec-id>",
-				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "output", Aliases: []string{"o"}, Usage: "output file path (default: <title>.md)"},
-				},
-				Action: runSpecDownload,
+var specCommand = &cli.Command{
+	Name:   "spec",
+	Usage:  "Work with specs",
+	Before: requireProject,
+	Commands: []*cli.Command{
+		{Name: "list", Usage: "List specs in the current project", Action: runSpecList},
+		{Name: "info", Usage: "Print a spec's metadata (without its markdown content)", ArgsUsage: "<spec-id>", Action: runSpecInfo},
+		{Name: "view", Usage: "Print a spec's markdown content", ArgsUsage: "<spec-id>", Action: runSpecView},
+		{
+			Name:      "download",
+			Usage:     "Write a spec's markdown content to a local file",
+			ArgsUsage: "<spec-id>",
+			Flags: []cli.Flag{
+				&cli.StringFlag{Name: "output", Aliases: []string{"o"}, Usage: "output file path (default: <title>.md)"},
 			},
-			{Name: "lock", Usage: "Lock a spec to prevent further edits", ArgsUsage: "<spec-id>", Action: runSpecLock},
+			Action: runSpecDownload,
 		},
-	}
+		{Name: "lock", Usage: "Lock a spec to prevent further edits", ArgsUsage: "<spec-id>", Action: runSpecLock},
+	},
 }
 
 func runSpecList(ctx context.Context, _ *cli.Command) error {

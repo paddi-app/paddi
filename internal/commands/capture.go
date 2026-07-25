@@ -14,25 +14,23 @@ import (
 	"github.com/paddi-app/paddi/internal/output"
 )
 
-func captureCommand() *cli.Command {
-	return &cli.Command{
-		Name:   "capture",
-		Usage:  "Feed raw feedback into Paddi",
-		Before: requireProject,
-		Commands: []*cli.Command{
-			{Name: "list", Usage: "List captures in the current project", Action: runCaptureList},
-			{
-				Name:      "create",
-				Usage:     "Create a capture from a message, file, or stdin",
-				ArgsUsage: "[-]",
-				Flags: []cli.Flag{
-					&cli.StringFlag{Name: "message", Aliases: []string{"m"}, Usage: "feedback text"},
-					&cli.StringFlag{Name: "file", Aliases: []string{"f"}, Usage: "read feedback from a file"},
-				},
-				Action: runCaptureCreate,
+var captureCommand = &cli.Command{
+	Name:   "capture",
+	Usage:  "Feed raw feedback into Paddi",
+	Before: requireProject,
+	Commands: []*cli.Command{
+		{Name: "list", Usage: "List captures in the current project", Action: runCaptureList},
+		{
+			Name:      "create",
+			Usage:     "Create a capture from a message, file, or stdin",
+			ArgsUsage: "[-]",
+			Flags: []cli.Flag{
+				&cli.StringFlag{Name: "message", Aliases: []string{"m"}, Usage: "feedback text"},
+				&cli.StringFlag{Name: "file", Aliases: []string{"f"}, Usage: "read feedback from a file"},
 			},
+			Action: runCaptureCreate,
 		},
-	}
+	},
 }
 
 func runCaptureList(ctx context.Context, _ *cli.Command) error {

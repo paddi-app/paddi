@@ -15,15 +15,13 @@ import (
 	"github.com/paddi-app/paddi/internal/prompt"
 )
 
-func projectCommand() *cli.Command {
-	return &cli.Command{
-		Name:  "project",
-		Usage: "Manage project context",
-		Commands: []*cli.Command{
-			{Name: "list", Usage: "List projects in the current workspace", Action: runProjectList},
-			{Name: "switch", Usage: "Set the current project", ArgsUsage: "[project-id]", Action: runProjectSwitch},
-		},
-	}
+var projectCommand = &cli.Command{
+	Name:  "project",
+	Usage: "Manage project context",
+	Commands: []*cli.Command{
+		{Name: "list", Usage: "List projects in the current workspace", Action: runProjectList},
+		{Name: "switch", Usage: "Set the current project", ArgsUsage: "[project-id]", Action: runProjectSwitch},
+	},
 }
 
 func runProjectList(ctx context.Context, _ *cli.Command) error {

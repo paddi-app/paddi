@@ -55,7 +55,7 @@ func TestReadAnswers(t *testing.T) {
 // the project themselves) before they reach the network.
 func TestRequestCommand_RequiresProjectBeforeNetwork(t *testing.T) {
 	withOpts(t, func(o *cmdutil.Options) { o.Project = "" })
-	err := requestCommand().Run(context.Background(), []string{"request", "view", "some-id"})
+	err := requestCommand.Run(context.Background(), []string{"request", "view", "some-id"})
 	if err == nil || !strings.Contains(err.Error(), "project") {
 		t.Errorf("request view without project: error = %v, want a missing-project error", err)
 	}
@@ -135,7 +135,7 @@ func TestRunRequestView_FormattedOutput(t *testing.T) {
 	}
 }
 
-var requestRegenerateFlags = requestCommand().Commands[2].Flags
+var requestRegenerateFlags = requestCommand.Commands[2].Flags
 
 func TestRunRequestRegenerate_UsageErrorWithZeroArgs(t *testing.T) {
 	cmd := parsedCmd(t, "regenerate", requestRegenerateFlags)
@@ -181,7 +181,7 @@ func TestRunRequestRegenerate_QuietSuppressesMessage(t *testing.T) {
 	}
 }
 
-var requestDraftFlags = requestCommand().Commands[3].Flags
+var requestDraftFlags = requestCommand.Commands[3].Flags
 
 func TestRunRequestDraft_UsageErrorWithZeroArgs(t *testing.T) {
 	path := writeTemp(t, `[{"solution_path_id":"sp1","selections":[]}]`)
