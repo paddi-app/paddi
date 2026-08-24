@@ -39,7 +39,7 @@ jobs:
       # (per-platform packages + a root package with optionalDependencies).
       - name: Publish to npm
         if: env.HAS_NPM_TOKEN == 'true'
-        uses: evg4b/goreleaser-npm-publisher-action@v1.5.0
+        uses: evg4b/goreleaser-npm-publisher-action@v1.6.0
         with:
           prefix: "@paddi-app"
           token: ${{ secrets.NPM_TOKEN }}
