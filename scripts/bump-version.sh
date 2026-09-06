@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bump the CLI version: updates main.go, commits, and tags.
+# Bump the CLI version: updates main.go, commits, tags, and pushes.
 # Usage: scripts/bump-version.sh major|minor|patch
 set -euo pipefail
 
@@ -29,5 +29,6 @@ sed -i '' -E "s/var version = \"[0-9]+\.[0-9]+\.[0-9]+\"/var version = \"$next\"
 git -C "$repo_root" add main.go
 git -C "$repo_root" commit -m "chore: bump version to $tag"
 git -C "$repo_root" tag "$tag"
+git -C "$repo_root" push origin HEAD "$tag"
 
-echo "bumped $current -> $next, committed and tagged $tag"
+echo "bumped $current -> $next, committed, tagged and pushed $tag"
