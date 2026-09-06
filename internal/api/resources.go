@@ -7,6 +7,22 @@ import (
 	"net/url"
 )
 
+type WorkspaceInput struct {
+	Name     string `json:"name"`
+	JobRole  string `json:"job_role,omitempty"`
+	TeamSize string `json:"team_size,omitempty"`
+	Language string `json:"language"`
+}
+
+func (c *Client) CreateWorkspace(ctx context.Context, in WorkspaceInput) (*Workspace, json.RawMessage, error) {
+	var out Workspace
+	raw, err := c.post(ctx, "/workspace", in, &out)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &out, raw, nil
+}
+
 func (c *Client) ListWorkspaces(ctx context.Context) ([]Workspace, json.RawMessage, error) {
 	var out []Workspace
 	raw, err := c.get(ctx, "/workspace", nil, &out)
@@ -14,6 +30,27 @@ func (c *Client) ListWorkspaces(ctx context.Context) ([]Workspace, json.RawMessa
 		return nil, nil, err
 	}
 	return out, raw, nil
+}
+
+type ProjectInput struct {
+	WorkspaceID string `json:"workspace_id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	// BusinessGoals is ordered by priority (highest first).
+	BusinessGoals    []string `json:"business_goals,omitempty"`
+	ProductType      string   `json:"product_type,omitempty"`
+	TargetAudience   []string `json:"target_audience,omitempty"`
+	ExcludedAudience []string `json:"excluded_audience,omitempty"`
+	ProductStage     string   `json:"product_stage,omitempty"`
+}
+
+func (c *Client) CreateProject(ctx context.Context, in ProjectInput) (*Project, json.RawMessage, error) {
+	var out Project
+	raw, err := c.post(ctx, "/project", in, &out)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &out, raw, nil
 }
 
 func (c *Client) ListProjects(ctx context.Context, workspaceID string) ([]Project, json.RawMessage, error) {

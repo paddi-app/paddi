@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/BurntSushi/toml"
+	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
 	"github.com/paddi-app/paddi/internal/cmdutil"
@@ -155,4 +156,67 @@ func TestRunWorkspaceSwitch_QuietSuppressesMessage(t *testing.T) {
 	if out != "" {
 		t.Errorf("stdout = %q, want empty output in quiet mode", out)
 	}
+}
+
+func TestRunWorkspaceCreate_SetsContextAndPrints(t *testing.T) {
+	path := withConfigFile(t)
+	var gotBody map[string]string
+	withAPIBase(t, func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewDecoder(r.Body).Decode(&gotBody)
+		w.WriteHeader(http.StatusCreated)
+		_ = json.NewEncoder(w).Encode(api.Workspace{ID: "w1", Name: "Acme"})
+	})
+	withOpts(t, func(o *cmdutil.Options) { o.Quiet = false; o.JSON = false })
+	cmd := parsedCmd(t, "create", workspaceCreateFlags(), "--team-size", "2-5", "Acme")
+	out := captureStdout(t, func() {
+		if err := runWorkspaceCreate(context.Background(), cmd); err != nil {
+			t.Fatalf("runWorkspaceCreate() error = %v", err)
+		}
+	})
+	if out != "Workspace Acme created and set as current.\n" {
+		t.Errorf("stdout = %q, want the created-and-set message", out)
+	}
+	if gotBody["name"] != "Acme" || gotBody["language"] != "en" || gotBody["team_size"] != "2-5" {
+		t.Errorf("request body = %v, want name=Acme language=en (default) team_size=2-5", gotBody)
+	}
+	if cfg := readProjectContextFile(t, path); cfg.Context.WorkspaceID != "w1" {
+		t.Errorf("config = %+v, want workspace=w1", cfg.Context)
+	}
+}
+
+func TestRunWorkspaceCreate_QuietPrintsIDOnly(t *testing.T) {
+	withConfigFile(t)
+	withAPIBase(t, func(w http.ResponseWriter, _ *http.Request) {
+		_ = json.NewEncoder(w).Encode(api.Workspace{ID: "w1", Name: "Acme"})
+	})
+	withOpts(t, func(o *cmdutil.Options) { o.Quiet = true; o.JSON = false })
+	cmd := parsedCmd(t, "create", workspaceCreateFlags(), "Acme")
+	out := captureStdout(t, func() {
+		if err := runWorkspaceCreate(context.Background(), cmd); err != nil {
+			t.Fatalf("runWorkspaceCreate() error = %v", err)
+		}
+	})
+	if out != "w1\n" {
+		t.Errorf("stdout = %q, want %q", out, "w1\n")
+	}
+}
+
+func TestRunWorkspaceCreate_RequiresExactlyOneName(t *testing.T) {
+	for _, args := range [][]string{{}, {"a", "b"}} {
+		cmd := parsedCmd(t, "create", workspaceCreateFlags(), args...)
+		if err := runWorkspaceCreate(context.Background(), cmd); err == nil {
+			t.Errorf("runWorkspaceCreate(%v) error = nil, want usage error", args)
+		}
+	}
+}
+
+// workspaceCreateFlags returns the flags declared by `workspace create` so
+// tests parse the same flag set the real command does.
+func workspaceCreateFlags() []cli.Flag {
+	for _, c := range workspaceCommand.Commands {
+		if c.Name == "create" {
+			return c.Flags
+		}
+	}
+	return nil
 }

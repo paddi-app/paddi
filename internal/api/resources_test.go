@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -236,5 +237,80 @@ func TestListProjects_PropagatesError(t *testing.T) {
 	c := &Client{BaseURL: srv.URL}
 	if _, _, err := c.ListProjects(context.Background(), "w1"); err == nil {
 		t.Error("ListProjects() error = nil, want the server's 500 to propagate")
+	}
+}
+
+func TestCreateWorkspace_SendsPOSTWithOptionalFieldsOmitted(t *testing.T) {
+	var gotMethod, gotPath string
+	var gotBody map[string]json.RawMessage
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotMethod, gotPath = r.Method, r.URL.Path
+		_ = json.NewDecoder(r.Body).Decode(&gotBody)
+		_ = json.NewEncoder(w).Encode(Workspace{ID: "w1", Name: "Acme"})
+	}))
+	defer srv.Close()
+
+	c := &Client{BaseURL: srv.URL}
+	got, _, err := c.CreateWorkspace(context.Background(), WorkspaceInput{Name: "Acme", Language: "en"})
+	if err != nil {
+		t.Fatalf("CreateWorkspace() error = %v", err)
+	}
+	if gotMethod != http.MethodPost || gotPath != "/workspace" {
+		t.Errorf("request = %s %s, want POST /workspace", gotMethod, gotPath)
+	}
+	if string(gotBody["name"]) != `"Acme"` || string(gotBody["language"]) != `"en"` {
+		t.Errorf("body = %v, want name=Acme language=en", gotBody)
+	}
+	for _, key := range []string{"job_role", "team_size"} {
+		if _, ok := gotBody[key]; ok {
+			t.Errorf("body has %s = %s, want it omitted when empty", key, gotBody[key])
+		}
+	}
+	if got.ID != "w1" || got.Name != "Acme" {
+		t.Errorf("CreateWorkspace() = %+v, want ID=w1 Name=Acme", got)
+	}
+}
+
+func TestCreateWorkspace_Error(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusConflict)
+		_, _ = w.Write([]byte(`{"code":"CONFLICT"}`))
+	}))
+	defer srv.Close()
+
+	c := &Client{BaseURL: srv.URL}
+	_, _, err := c.CreateWorkspace(context.Background(), WorkspaceInput{Name: "Acme", Language: "en"})
+	var apiErr *Error
+	if !errors.As(err, &apiErr) || apiErr.Status != http.StatusConflict {
+		t.Fatalf("CreateWorkspace() error = %v, want *Error with status 409", err)
+	}
+}
+
+func TestCreateProject_SendsPOSTWithWorkspaceID(t *testing.T) {
+	var gotMethod, gotPath string
+	var gotBody map[string]json.RawMessage
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotMethod, gotPath = r.Method, r.URL.Path
+		_ = json.NewDecoder(r.Body).Decode(&gotBody)
+		_ = json.NewEncoder(w).Encode(Project{ID: "p1", Name: "Website", WorkspaceID: "w1"})
+	}))
+	defer srv.Close()
+
+	c := &Client{BaseURL: srv.URL}
+	got, _, err := c.CreateProject(context.Background(), ProjectInput{WorkspaceID: "w1", Name: "Website"})
+	if err != nil {
+		t.Fatalf("CreateProject() error = %v", err)
+	}
+	if gotMethod != http.MethodPost || gotPath != "/project" {
+		t.Errorf("request = %s %s, want POST /project", gotMethod, gotPath)
+	}
+	if string(gotBody["workspace_id"]) != `"w1"` || string(gotBody["name"]) != `"Website"` {
+		t.Errorf("body = %v, want workspace_id=w1 name=Website", gotBody)
+	}
+	if _, ok := gotBody["description"]; ok {
+		t.Errorf("body has description = %s, want it omitted when empty", gotBody["description"])
+	}
+	if got.ID != "p1" || got.WorkspaceID != "w1" {
+		t.Errorf("CreateProject() = %+v, want ID=p1 WorkspaceID=w1", got)
 	}
 }

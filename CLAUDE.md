@@ -60,9 +60,11 @@ These four rules override everything else below. Align before acting.
   - `logout` — revoke session and clear local credentials
   - `status` — show logged-in user and current context
 - `workspace` — manage workspace context
+  - `create <name> [-l language] [--team-size] [--job-role]` — create a workspace and set it as current
   - `list` — list my workspaces
   - `switch [id]` — set current workspace (interactive picker if `id` omitted)
 - `project` — manage project context
+  - `create <name> [-d description] [--product-type] [--product-stage] [--target-audience] [--excluded-audience] [--business-goal]` — create a project in the current workspace and set it as current; repeatable list flags, `--business-goal` order = priority
   - `list` — list projects in the current workspace
   - `switch [id]` — set current project (interactive picker if `id` omitted)
 - `spec` — work with specs

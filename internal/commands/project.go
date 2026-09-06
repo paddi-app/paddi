@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/urfave/cli/v3"
 
@@ -19,6 +21,20 @@ var projectCommand = &cli.Command{
 	Name:  "project",
 	Usage: "Manage project context",
 	Commands: []*cli.Command{
+		{
+			Name:      "create",
+			Usage:     "Create a project in the current workspace and set it as the current one",
+			ArgsUsage: "<name>",
+			Flags: []cli.Flag{
+				&cli.StringFlag{Name: "description", Aliases: []string{"d"}, Usage: "what this project is about"},
+				&cli.StringFlag{Name: "product-type", Usage: "product type (" + strings.Join(productTypes, ", ") + ")"},
+				&cli.StringFlag{Name: "product-stage", Usage: "product stage (" + strings.Join(productStages, ", ") + ")"},
+				&cli.StringSliceFlag{Name: "target-audience", Usage: "who this project is for (repeatable)"},
+				&cli.StringSliceFlag{Name: "excluded-audience", Usage: "who this project is not for (repeatable)"},
+				&cli.StringSliceFlag{Name: "business-goal", Usage: "business goal, highest priority first (repeatable)"},
+			},
+			Action: runProjectCreate,
+		},
 		{Name: "list", Usage: "List projects in the current workspace", Action: runProjectList},
 		{Name: "switch", Usage: "Set the current project", ArgsUsage: "[project-id]", Action: runProjectSwitch},
 	},
@@ -49,6 +65,48 @@ func runProjectList(ctx context.Context, _ *cli.Command) error {
 	return output.Table(os.Stdout, []string{"ID", "NAME", "DESCRIPTION"}, rows)
 }
 
+// Enum values accepted by the backend (model.AllProjectProductTypes /
+// model.AllProjectProductStages), same options the onboarding form offers.
+var (
+	productTypes  = []string{"b2b_saas", "b2c_app", "developer_tool", "internal_tool", "marketplace", "ecommerce", "content_media", "other"}
+	productStages = []string{"pre_alpha", "alpha", "beta", "pmf_validation", "growth", "scale"}
+)
+
+// projectDescriptionMaxLength mirrors the onboarding form's limit on the
+// "About this project" field.
+const projectDescriptionMaxLength = 1000
+
+func runProjectCreate(ctx context.Context, cmd *cli.Command) error {
+	input, err := projectInput(cmd)
+	if err != nil {
+		return err
+	}
+	input.WorkspaceID, err = cmdutil.RequireWorkspace(opts.WorkspaceID)
+	if err != nil {
+		return err
+	}
+	client, err := newClient()
+	if err != nil {
+		return err
+	}
+	project, raw, err := client.CreateProject(ctx, *input)
+	if err != nil {
+		return err
+	}
+	if err := config.Set(config.KeyProjectID, project.ID); err != nil {
+		return err
+	}
+	if opts.JSON {
+		return output.JSON(os.Stdout, raw)
+	}
+	if opts.Quiet {
+		fmt.Println(project.ID)
+	} else {
+		fmt.Printf("Project %s created and set as current.\n", project.Name)
+	}
+	return nil
+}
+
 func runProjectSwitch(ctx context.Context, cmd *cli.Command) error {
 	proj, err := chooseProject(ctx, cmd)
 	if err != nil || proj == nil {
@@ -72,6 +130,50 @@ func runProjectSwitch(ctx context.Context, cmd *cli.Command) error {
 		fmt.Printf("Project set to %s\n", name)
 	}
 	return nil
+}
+
+// projectInput validates the create flags and args into an API payload,
+// applying the same field rules as the onboarding create-project form.
+// WorkspaceID is left for the caller to fill in.
+func projectInput(cmd *cli.Command) (*api.ProjectInput, error) {
+	name, err := cmdutil.SingleArg(cmd, "paddi project create <name>")
+	if err != nil {
+		return nil, err
+	}
+	name = strings.TrimSpace(name)
+	if name == "" || len(name) > 50 || strings.ContainsAny(name, `/\<>`) {
+		return nil, errors.New(`project name must be 1-50 characters and cannot contain /, \, < or >`)
+	}
+	description := cmd.String("description")
+	if len(description) > projectDescriptionMaxLength {
+		return nil, fmt.Errorf("description must be at most %d characters", projectDescriptionMaxLength)
+	}
+	productType, err := oneOf(cmd.String("product-type"), productTypes, "product-type")
+	if err != nil {
+		return nil, err
+	}
+	productStage, err := oneOf(cmd.String("product-stage"), productStages, "product-stage")
+	if err != nil {
+		return nil, err
+	}
+	return &api.ProjectInput{
+		Name:             name,
+		Description:      description,
+		ProductType:      productType,
+		ProductStage:     productStage,
+		TargetAudience:   cmd.StringSlice("target-audience"),
+		ExcludedAudience: cmd.StringSlice("excluded-audience"),
+		BusinessGoals:    cmd.StringSlice("business-goal"),
+	}, nil
+}
+
+// oneOf passes an empty value through (the field is optional) and otherwise
+// checks it against the allowed enum values.
+func oneOf(value string, allowed []string, flag string) (string, error) {
+	if value == "" || slices.Contains(allowed, value) {
+		return value, nil
+	}
+	return "", fmt.Errorf("invalid --%s %q: must be one of %s", flag, value, strings.Join(allowed, ", "))
 }
 
 // chooseProject resolves the selected project from an explicit argument or an

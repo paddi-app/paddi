@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/paddi-app/paddi/internal/api"
+	"github.com/paddi-app/paddi/internal/cmdutil"
 	"github.com/paddi-app/paddi/internal/config"
 	"github.com/paddi-app/paddi/internal/output"
 	"github.com/paddi-app/paddi/internal/prompt"
@@ -19,6 +20,17 @@ var workspaceCommand = &cli.Command{
 	Name:  "workspace",
 	Usage: "Manage workspace context",
 	Commands: []*cli.Command{
+		{
+			Name:      "create",
+			Usage:     "Create a workspace and set it as the current one",
+			ArgsUsage: "<name>",
+			Flags: []cli.Flag{
+				&cli.StringFlag{Name: "language", Aliases: []string{"l"}, Usage: "workspace language (en, zh-TW)", Value: "en"},
+				&cli.StringFlag{Name: "team-size", Usage: "team size (e.g. 2-5)"},
+				&cli.StringFlag{Name: "job-role", Usage: "your job role in the workspace"},
+			},
+			Action: runWorkspaceCreate,
+		},
 		{Name: "list", Usage: "List my workspaces", Action: runWorkspaceList},
 		{Name: "switch", Usage: "Set the current workspace", ArgsUsage: "[workspace-id]", Action: runWorkspaceSwitch},
 	},
@@ -51,6 +63,38 @@ func runWorkspaceList(ctx context.Context, _ *cli.Command) error {
 		rows = append(rows, []string{w.ID, w.Name, role, strconv.Itoa(len(w.Projects))})
 	}
 	return output.Table(os.Stdout, []string{"ID", "NAME", "ROLE", "PROJECTS"}, rows)
+}
+
+func runWorkspaceCreate(ctx context.Context, cmd *cli.Command) error {
+	name, err := cmdutil.SingleArg(cmd, "paddi workspace create <name>")
+	if err != nil {
+		return err
+	}
+	client, err := newClient()
+	if err != nil {
+		return err
+	}
+	workspace, raw, err := client.CreateWorkspace(ctx, api.WorkspaceInput{
+		Name:     name,
+		JobRole:  cmd.String("job-role"),
+		TeamSize: cmd.String("team-size"),
+		Language: cmd.String("language"),
+	})
+	if err != nil {
+		return err
+	}
+	if err := config.Set(config.KeyWorkspaceID, workspace.ID); err != nil {
+		return err
+	}
+	if opts.JSON {
+		return output.JSON(os.Stdout, raw)
+	}
+	if opts.Quiet {
+		fmt.Println(workspace.ID)
+	} else {
+		fmt.Printf("Workspace %s created and set as current.\n", workspace.Name)
+	}
+	return nil
 }
 
 func runWorkspaceSwitch(ctx context.Context, cmd *cli.Command) error {
